@@ -20,6 +20,7 @@ namespace Actors
         private int _numberOfAthletes;
         private int _atheltesSimulated;
         private string _randomWinner;
+        private string _randomDisqualified;
         private Random _rnd;
         private TimeSpan _raceDuration = TimeSpan.FromSeconds(20);
 
@@ -89,22 +90,44 @@ namespace Actors
 
             var raceStartedAt = DateTime.Now;
             _randomWinner = _rnd.Next(1, msg.NumberOfAthletes).ToString();
+            _randomDisqualified = _randomWinner;
+            while (_randomDisqualified == _randomWinner)
+            {
+                _randomDisqualified = _rnd.Next(1, msg.NumberOfAthletes).ToString();
+            }
 
-            FluentConsole.Magenta.Line($"Winner shlould be #{_randomWinner}");
+            FluentConsole.Magenta.Line($"Winner should be #{_randomWinner}");
+            FluentConsole.Magenta.Line($"Disqualified should be #{_randomDisqualified}");
+
+            var raceControl = Context.System.ActorSelection($"/user/race-control");
+            for (int i = 0; i < msg.NumberOfAthletes; i++)
+            {
+                var bibId = (i + 1).ToString();
+                raceControl.Tell(new AthleteRegistered(bibId));
+            }
+
+            var standingActor = Context.System.ActorSelection($"/user/standing");
+            standingActor.Tell(new RaceStarted(raceStartedAt));
+
+            var liveStandingScheduler = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(1),
+                standingActor,
+                new PrintLiveStanding(3),
+                Self);
+            liveStandingScheduler.CancelAfter(TimeSpan.FromSeconds(7));//_raceDuration - _raceDuration.Subtract(TimeSpan.FromMilliseconds(_raceDuration.TotalMilliseconds / 10))
 
             for (int i = 0; i < msg.NumberOfAthletes; i++)
             {
-                var bibId = i + 1;
-                Self.Tell(new SimulatePassingAthlete(bibId.ToString(), raceStartedAt));
+                var bibId = (i + 1).ToString();
+                Self.Tell(new SimulatePassingAthlete(bibId, raceStartedAt));
             }
 
             var raceClosed = new RaceClosed();
             var standingBikeActor = Context.System.ActorSelection($"/user/standing-bike");
             Context.System.Scheduler.ScheduleTellOnce(_raceDuration.Add(TimeSpan.FromSeconds(1)), standingBikeActor, new Shutdown(), Self);
 
-
             Context.System.Scheduler.ScheduleTellOnce(_raceDuration, 
-                Context.System.ActorSelection($"/user/standing"), 
+                standingActor, 
                 new Shutdown(), 
                 Self);
 
@@ -115,9 +138,6 @@ namespace Actors
             _atheltesSimulated++;
             var isWinner = msg.BibId == _randomWinner;
 
-            var raceControl = Context.System.ActorSelection($"/user/race-control");
-            raceControl.Tell(new AthleteRegistered(msg.BibId));
-
             DateTime entryTimestamp = DateTime.Now;// msg.RaceStartedAt;
             TimeSpan delay = TimeSpan.FromSeconds(0);
             var counter = 1;
@@ -126,7 +146,7 @@ namespace Actors
                 var athletePasedAsEntered = new AthletePassed(msg.BibId, entryTimestamp, kv.Key);
                 ActorSelection entryGate = Context.System.ActorSelection($"/user/entrygate{kv.Key}");
                 Context.System.Scheduler.ScheduleTellOnce(delay, entryGate, athletePasedAsEntered, Self);
-                Console.WriteLine("Athlete {0} entered gate {1} w/ delay {2}", msg.BibId, counter, delay.TotalSeconds);
+                //Console.WriteLine("Athlete {0} entered gate {1} w/ delay {2}", msg.BibId, counter, delay.TotalSeconds);
 
                 var gateDelay = !isWinner ?
                     TimeSpan.FromSeconds(_rnd.Next(kv.Value.Min, kv.Value.Max) + _rnd.NextDouble())
@@ -136,8 +156,15 @@ namespace Actors
                 DateTime exitTimestamp = entryTimestamp.Add(delay);
                 var athletePasedAsExited = new AthletePassed(msg.BibId, exitTimestamp, kv.Key);
                 ActorSelection exityGate = Context.System.ActorSelection($"/user/exitgate{kv.Key}");
-                Context.System.Scheduler.ScheduleTellOnce(delay, exityGate, athletePasedAsExited, Self);
-                Console.WriteLine("Athlete {0} exited gate {1} w/ delay {2}", msg.BibId, counter, delay.TotalSeconds);
+                if (msg.BibId ==_randomDisqualified)
+                {
+                    FluentConsole.Magenta.Line($"Athlete #{_randomDisqualified} should be disqualified for missing exiting gate {kv.Key}");
+                }
+                else
+                {
+                    Context.System.Scheduler.ScheduleTellOnce(delay, exityGate, athletePasedAsExited, Self);
+                    //Console.WriteLine("Athlete {0} exited gate {1} w/ delay {2}", msg.BibId, counter, delay.TotalSeconds);
+                }
 
                 if (counter < _exitDelay.Count)
                 {

@@ -43,7 +43,7 @@ namespace Host
                 Console.WriteLine("Actorsystem and actor created. Press any key to start simulation\n");
                 Console.ReadKey(true);
 
-                simulationActor.Tell(new StartSimulation(500));
+                simulationActor.Tell(new StartSimulation(100));
                 //simulationActor.Tell(new TestSimulation(18));
 
                 Console.ReadKey(true);

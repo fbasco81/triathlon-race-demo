@@ -11,5 +11,11 @@ namespace Messages
         Run
     }
 
+    public enum GateActions
+    {
+        Entering = 1,
+        Exiting,
+    }
+
 
 }

@@ -5,13 +5,6 @@ using System.Collections.Generic;
 
 namespace Actors
 {
-    public class GateInOut
-    {
-        public DateTime In { get; set; }
-        public DateTime? Out { get; set; }
-        public TimeSpan? Duration { get; set; }
-    }
-
     /// <summary>
     /// Actor that represents a registered vehicle.
     /// </summary>

@@ -49,7 +49,8 @@ namespace Actors
 
         private void Handle(AthleteRegistered msg)
         {
-            var props = Props.Create<AthleteActor>(msg.BibId);
+            //var props = Props.Create<AthleteActor>(msg.BibId);
+            var props = Props.Create<AthleteSwitchableActor>(msg.BibId);
             var athleteActor = Context.ActorOf(props, $"athlete-{msg.BibId}");
         }
 
@@ -59,8 +60,21 @@ namespace Actors
         /// <param name="msg">The message to handle.</param>
         private void Handle(AthleteEntryRegistered msg)
         {
+            //ICanTell athleteActor;
+
+            //if ((int)msg.Gate == 1)
+            //{
+            //    var props = Props.Create<AthleteActor>(msg.BibId);
+            //    athleteActor = Context.ActorOf(props, $"athlete-{msg.BibId}");
+            //}
+            //else
+            //{
+            //    athleteActor = Context.ActorSelection($"/user/race-control/*/athlete-{msg.BibId}");
+            //}
             var athleteActor = Context.ActorSelection($"/user/race-control/*/athlete-{msg.BibId}");
+
             athleteActor.Tell(msg, Self);
+
         }
 
         /// <summary>
