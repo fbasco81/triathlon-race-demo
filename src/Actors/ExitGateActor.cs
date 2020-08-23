@@ -37,7 +37,7 @@ namespace Actors
         /// <param name="msg">The message to handle.</param>
         private void Handle(AthletePassed msg)
         {
-            var athleteExitRegistered = new AthleteExitRegistered(msg.BibId, msg.Timestamp);
+            var athleteExitRegistered = new AthleteExitRegistered(msg.BibId, msg.Timestamp, msg.Gate);
             _raceControlActor.Tell(athleteExitRegistered);
             //Console.WriteLine("Athlete {0} exited gate", msg.BibId);
         }

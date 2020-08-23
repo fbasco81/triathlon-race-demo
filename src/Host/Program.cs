@@ -21,6 +21,7 @@ namespace Host
                 //var roadInfo = new RoadInfo("A2", 10, 100, 5);
                 var raceControlProps = Props.Create<RaceControlActor>()
                     .WithRouter(new RoundRobinPool(3));
+                    //.WithRouter(new BroadcastPool(3));
                 var raceControlActor = system.ActorOf(raceControlProps, "race-control");
 
                 var entryGateActor1 = system.ActorOf<EntryGateActor>("entrygateSwim");
@@ -43,6 +44,7 @@ namespace Host
                 Console.ReadKey(true);
 
                 simulationActor.Tell(new StartSimulation(500));
+                //simulationActor.Tell(new TestSimulation(18));
 
                 Console.ReadKey(true);
                 system.Terminate();

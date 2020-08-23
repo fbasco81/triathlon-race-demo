@@ -19,6 +19,7 @@ namespace Actors
     {
         private int _numberOfAthletes;
         private int _atheltesSimulated;
+        private string _randomWinner;
         private Random _rnd;
         private TimeSpan _raceDuration = TimeSpan.FromSeconds(20);
 
@@ -26,14 +27,14 @@ namespace Actors
         private int _maxEntryDelayInMS = 5000;
         private int _minTransitionDelayInS = 1;
         private int _maxTransitionDelayInS = 2;
-        private Dictionary<string, ExitDelayInSecond> _exitDelay = new Dictionary<string, ExitDelayInSecond>()
+        private Dictionary<Gates, ExitDelayInSecond> _exitDelay = new Dictionary<Gates, ExitDelayInSecond>()
         {
             //{ Gates.Swim.ToString(), new ExitDelayInSecond{Min = 8, Max = 16} },
             //{ Gates.Bike.ToString(), new ExitDelayInSecond{Min = 25, Max = 40} },
             //{ Gates.Run.ToString(), new ExitDelayInSecond{Min = 14, Max = 30} },
-            { Gates.Swim.ToString(), new ExitDelayInSecond{Min = 1, Max = 2} },
-            { Gates.Bike.ToString(), new ExitDelayInSecond{Min = 3, Max = 4} },
-            { Gates.Run.ToString(), new ExitDelayInSecond{Min = 2, Max = 3} },
+            { Gates.Swim, new ExitDelayInSecond{Min = 1, Max = 2} },
+            { Gates.Bike, new ExitDelayInSecond{Min = 3, Max = 4} },
+            { Gates.Run, new ExitDelayInSecond{Min = 2, Max = 3} },
         };
 
         /// <summary>
@@ -44,6 +45,9 @@ namespace Actors
         {
             switch (message)
             {
+                case TestSimulation ss:
+                    Handle(ss);
+                    break;
                 case StartSimulation ss:
                     Handle(ss);
                     break;
@@ -56,11 +60,22 @@ namespace Actors
             }
         }
 
-        /// <summary>
-        /// Handle StartSimulation message.
-        /// </summary>
-        /// <param name="msg">The message to handle.</param>
-        private void Handle(StartSimulation msg)
+        private void Handle(TestSimulation msg)
+        {
+            var raceControl = Context.System.ActorSelection($"/user/race-control");
+
+
+            for (int i = 0; i < msg.NumberOfAthletes; i++)
+            {
+                raceControl.Tell(new Test(i.ToString()));
+            }
+        }
+
+            /// <summary>
+            /// Handle StartSimulation message.
+            /// </summary>
+            /// <param name="msg">The message to handle.</param>
+            private void Handle(StartSimulation msg)
         {
             // initialize state
             _numberOfAthletes = msg.NumberOfAthletes;
@@ -73,9 +88,14 @@ namespace Actors
             //    _rnd.Next(_minEntryDelayInMS, _maxEntryDelayInMS), Self, simulatePassingCar, Self);
 
             var raceStartedAt = DateTime.Now;
+            _randomWinner = _rnd.Next(1, msg.NumberOfAthletes).ToString();
+
+            FluentConsole.Magenta.Line($"Winner shlould be #{_randomWinner}");
+
             for (int i = 0; i < msg.NumberOfAthletes; i++)
             {
-                Self.Tell(new SimulatePassingAthlete((i + 1).ToString(), raceStartedAt));
+                var bibId = i + 1;
+                Self.Tell(new SimulatePassingAthlete(bibId.ToString(), raceStartedAt));
             }
 
             var raceClosed = new RaceClosed();
@@ -93,31 +113,37 @@ namespace Actors
         private void Handle(SimulatePassingAthlete msg)
         {
             _atheltesSimulated++;
+            var isWinner = msg.BibId == _randomWinner;
 
             var raceControl = Context.System.ActorSelection($"/user/race-control");
             raceControl.Tell(new AthleteRegistered(msg.BibId));
 
-            DateTime entryTimestamp = msg.RaceStartedAt;
+            DateTime entryTimestamp = DateTime.Now;// msg.RaceStartedAt;
             TimeSpan delay = TimeSpan.FromSeconds(0);
             var counter = 1;
             foreach (var kv in _exitDelay)
             {
-                var athletePasedAsEntered = new AthletePassed(msg.BibId, entryTimestamp);
+                var athletePasedAsEntered = new AthletePassed(msg.BibId, entryTimestamp, kv.Key);
                 ActorSelection entryGate = Context.System.ActorSelection($"/user/entrygate{kv.Key}");
                 Context.System.Scheduler.ScheduleTellOnce(delay, entryGate, athletePasedAsEntered, Self);
                 Console.WriteLine("Athlete {0} entered gate {1} w/ delay {2}", msg.BibId, counter, delay.TotalSeconds);
 
-                var gateDelay = TimeSpan.FromSeconds(_rnd.Next(kv.Value.Min, kv.Value.Max) + _rnd.NextDouble());
+                var gateDelay = !isWinner ?
+                    TimeSpan.FromSeconds(_rnd.Next(kv.Value.Min, kv.Value.Max) + _rnd.NextDouble())
+                    : TimeSpan.FromSeconds(kv.Value.Min);
+
                 delay = delay + gateDelay;
                 DateTime exitTimestamp = entryTimestamp.Add(delay);
-                var athletePasedAsExited = new AthletePassed(msg.BibId, exitTimestamp);
+                var athletePasedAsExited = new AthletePassed(msg.BibId, exitTimestamp, kv.Key);
                 ActorSelection exityGate = Context.System.ActorSelection($"/user/exitgate{kv.Key}");
                 Context.System.Scheduler.ScheduleTellOnce(delay, exityGate, athletePasedAsExited, Self);
                 Console.WriteLine("Athlete {0} exited gate {1} w/ delay {2}", msg.BibId, counter, delay.TotalSeconds);
 
                 if (counter < _exitDelay.Count)
                 {
-                    var transitionTime = TimeSpan.FromSeconds(_rnd.Next(_minTransitionDelayInS, _minTransitionDelayInS) + _rnd.NextDouble());
+                    var transitionTime = !isWinner ? 
+                        TimeSpan.FromSeconds(_rnd.Next(_minTransitionDelayInS, _minTransitionDelayInS) + _rnd.NextDouble())
+                        : TimeSpan.FromSeconds(_minTransitionDelayInS);
                     entryTimestamp = exitTimestamp.Add(transitionTime);
                     delay = delay + transitionTime;
                 }

@@ -11,9 +11,5 @@ namespace Messages
         Run
     }
 
-    //public class GateInOut
-    //{
-    //    DateTime In { get; set; }
-    //    DateTime Out { get; set; }
-    //}
+
 }

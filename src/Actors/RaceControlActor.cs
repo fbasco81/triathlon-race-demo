@@ -26,6 +26,9 @@ namespace Actors
         {
             switch(message)
             {
+                case Test ver:
+                    Handle(ver);
+                    break;
                 case AthleteRegistered ver:
                     Handle(ver);
                     break;
@@ -36,6 +39,12 @@ namespace Actors
                     Handle(vxr);
                     break;            
             }
+        }
+
+        private void Handle(Test msg)
+        {
+            _athletes.Add(msg.BibId);
+            FluentConsole.White.Line($"Path: {Self.Path}, Athletes: {_athletes.Count}");
         }
 
         private void Handle(AthleteRegistered msg)
@@ -51,7 +60,6 @@ namespace Actors
         private void Handle(AthleteEntryRegistered msg)
         {
             var athleteActor = Context.ActorSelection($"/user/race-control/*/athlete-{msg.BibId}");
-
             athleteActor.Tell(msg, Self);
         }
 

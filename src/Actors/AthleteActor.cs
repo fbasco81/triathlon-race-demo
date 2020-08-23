@@ -5,6 +5,13 @@ using System.Collections.Generic;
 
 namespace Actors
 {
+    public class GateInOut
+    {
+        public DateTime In { get; set; }
+        public DateTime? Out { get; set; }
+        public TimeSpan? Duration { get; set; }
+    }
+
     /// <summary>
     /// Actor that represents a registered vehicle.
     /// </summary>
@@ -25,7 +32,7 @@ namespace Actors
         private ActorSelection _standingActor;
         private ActorSelection _bikeStandingActor;
 
-        private Dictionary<string, double?> _gates = new Dictionary<string, double?>()
+        private Dictionary<string, GateInOut> _gates = new Dictionary<string, GateInOut>()
         {
             { Gates.Swim.ToString(), null },
             { "T1", null },
@@ -79,35 +86,45 @@ namespace Actors
         {
             //FluentConsole.Green.Line($"Vehicle '{msg.VehicleId}' entered at {msg.Timestamp.ToString("HH:mm:ss.ffffff")}");
 
-            _entryTimestamp = msg.Timestamp;
+            _gates[msg.Gate.ToString()] = new GateInOut { In = msg.Timestamp };
 
-            string gate = null;
-
-
-            if (_gates[Gates.Swim.ToString()] == null)
+            if (msg.Gate == Gates.Bike)
             {
-                _firstEntryTimestamp = msg.Timestamp;
-                gate = Gates.Swim.ToString();
-            }
-            else if (_gates[Gates.Bike.ToString()] == null)
-            {
-                _gates["T1"] = _entryTimestamp.Subtract(_exitTimestamp.Value).TotalSeconds;
-
-                gate = Gates.Bike.ToString();
-            }
-            else if (_gates[Gates.Run.ToString()] == null)
-            {
-                _gates["T2"] = _entryTimestamp.Subtract(_exitTimestamp.Value).TotalSeconds;
-
-
-                gate = Gates.Run.ToString();
-            }
-            else
-            {
-                throw new ApplicationException("Unexpected enter registered");
+                var timeSpan = _entryTimestamp.Subtract(_gates[Gates.Swim.ToString()].Out.Value);
+                _gates["T1"] = new GateInOut { Duration = timeSpan };
             }
 
-            Console.WriteLine("Athlete {0} entered gate {1}", msg.BibId, gate);
+            if (msg.Gate == Gates.Run)
+            {
+                var timeSpan = _entryTimestamp.Subtract(_gates[Gates.Bike.ToString()].Out.Value);
+                _gates["T2"] = new GateInOut { Duration = timeSpan };
+            }
+
+
+            //if (_gates[Gates.Swim.ToString()] == null)
+            //{
+            //    _firstEntryTimestamp = msg.Timestamp;
+            //    gate = Gates.Swim.ToString();
+            //}
+            //else if (_gates[Gates.Bike.ToString()] == null)
+            //{
+            //    _gates["T1"] = _entryTimestamp.Subtract(_exitTimestamp.Value).TotalSeconds;
+
+            //    gate = Gates.Bike.ToString();
+            //}
+            //else if (_gates[Gates.Run.ToString()] == null)
+            //{
+            //    _gates["T2"] = _entryTimestamp.Subtract(_exitTimestamp.Value).TotalSeconds;
+
+
+            //    gate = Gates.Run.ToString();
+            //}
+            //else
+            //{
+            //    throw new ApplicationException("Unexpected enter registered");
+            //}
+
+            Console.WriteLine("Athlete {0} entered gate {1}", msg.BibId, msg.Gate);
 
             //_dmvActor = Context.ActorOf<DMVActor>();
             //_dmvActor.Tell(new GetVehicleInfo(_bibId));
@@ -135,51 +152,64 @@ namespace Actors
         /// <param name="msg">The message to handle.</param>
         private void Handle(AthleteExitRegistered msg)
         {
-            _exitTimestamp = msg.Timestamp;
-            string gate = null;
 
-            if (_gates[Gates.Swim.ToString()] == null)
-            {
-                _gates[Gates.Swim.ToString()] = _exitTimestamp.Value.Subtract(_entryTimestamp).TotalSeconds;
-                gate = Gates.Swim.ToString();
-                var swimCompleted = new SwimCompleted(
-                    msg.BibId,
-                    msg.Timestamp.Subtract(_entryTimestamp));
-            }
-            else if (_gates[Gates.Bike.ToString()] == null)
-            {
-                _gates[Gates.Bike.ToString()] = _exitTimestamp.Value.Subtract(_entryTimestamp).TotalSeconds;
-                gate = Gates.Bike.ToString();
-                var bikeCompleted = new BikeCompleted(
-                    msg.BibId,
-                    msg.Timestamp.Subtract(_entryTimestamp));
-                _bikeStandingActor.Tell(bikeCompleted);
-            }
-            else if (_gates[Gates.Run.ToString()] == null)
-            {
-                _gates[Gates.Run.ToString()] = _exitTimestamp.Value.Subtract(_entryTimestamp).TotalSeconds;
-                gate = Gates.Run.ToString();
+            _gates[msg.Gate.ToString()].Out = msg.Timestamp;
+            _gates[msg.Gate.ToString()].Duration = msg.Timestamp.Subtract(_gates[msg.Gate.ToString()].In);
 
-                var runCompleted = new RunCompleted(
-                    msg.BibId,
-                    msg.Timestamp.Subtract(_entryTimestamp));
+            //if (_gates[Gates.Swim.ToString()] == null)
+            //{
+            //    _gates[Gates.Swim.ToString()] = _exitTimestamp.Value.Subtract(_entryTimestamp).TotalSeconds;
+            //    gate = Gates.Swim.ToString();
+            //    var swimCompleted = new SwimCompleted(
+            //        msg.BibId,
+            //        msg.Timestamp.Subtract(_entryTimestamp));
+            //}
+            //else if (_gates[Gates.Bike.ToString()] == null)
+            //{
+            //    _gates[Gates.Bike.ToString()] = _exitTimestamp.Value.Subtract(_entryTimestamp).TotalSeconds;
+            //    gate = Gates.Bike.ToString();
+            //    var bikeCompleted = new BikeCompleted(
+            //        msg.BibId,
+            //        msg.Timestamp.Subtract(_entryTimestamp));
+            //    _bikeStandingActor.Tell(bikeCompleted);
+            //}
+            //else if (_gates[Gates.Run.ToString()] == null)
+            //{
+            //    _gates[Gates.Run.ToString()] = _exitTimestamp.Value.Subtract(_entryTimestamp).TotalSeconds;
+            //    gate = Gates.Run.ToString();
 
+            //    var runCompleted = new RunCompleted(
+            //        msg.BibId,
+            //        msg.Timestamp.Subtract(_entryTimestamp));
+
+            //    var raceCompleted = new RaceCompleted(
+            //        msg.BibId,
+            //        msg.Timestamp,
+            //        msg.Timestamp.Subtract(_firstEntryTimestamp));
+
+            //    _standingActor.Tell(raceCompleted);
+            //    _bikeStandingActor.Tell(raceCompleted);
+
+            //    Self.Tell(new Shutdown());
+            //}
+            //else
+            //{
+            //    throw new ApplicationException("Unexpected exit registered");
+            //}
+
+            if(msg.Gate == Gates.Run)
+            {
                 var raceCompleted = new RaceCompleted(
                     msg.BibId,
                     msg.Timestamp,
-                    msg.Timestamp.Subtract(_firstEntryTimestamp));
+                    msg.Timestamp.Subtract(_gates[Gates.Swim.ToString()].In));
 
                 _standingActor.Tell(raceCompleted);
-                _bikeStandingActor.Tell(raceCompleted);
 
                 Self.Tell(new Shutdown());
             }
-            else
-            {
-                throw new ApplicationException("Unexpected exit registered");
-            }
 
-            Console.WriteLine("Athlete {0} exited gate {1}", msg.BibId, gate);
+            Console.WriteLine("Athlete {0} exited gate {1}", msg.BibId, msg.Gate);
         }
 
         /// <summary>
