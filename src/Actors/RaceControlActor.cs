@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Messages;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Actors
 {
@@ -26,13 +27,16 @@ namespace Actors
         {
             switch(message)
             {
-                case Test ver:
+                case RaceClosed ver:
                     Handle(ver);
                     break;
                 case AthleteRegistered ver:
                     Handle(ver);
                     break;
                 case AthleteEntryRegistered ver:
+                    Handle(ver);
+                    break;
+                case AthleteCheckRegistered ver:
                     Handle(ver);
                     break;
                 case AthleteExitRegistered vxr:
@@ -85,6 +89,20 @@ namespace Actors
         {
             var athleteActor = Context.ActorSelection($"/user/race-control/*/athlete-{msg.BibId}");
             athleteActor.Tell(msg);
+        }
+
+        private void Handle(AthleteCheckRegistered msg)
+        {
+            //var athleteActor = Context.ActorSelection($"/user/race-control/*/athlete-{msg.BibId}");
+            //athleteActor.Tell(msg);
+            var standingActor = Context.ActorSelection($"/user/standing");
+            standingActor.Tell(msg);
+        }
+
+        private void Handle(RaceClosed msg)
+        {
+            var athleteActor = Context.ActorSelection($"/user/race-control/*/*");
+            athleteActor.Tell(new RaceClosed());
         }
     }
 }

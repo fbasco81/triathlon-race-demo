@@ -42,11 +42,11 @@ namespace Actors
 
         private void Handle(Shutdown msg)
         {
-            FluentConsole.White.Line("Bike standings");
-            foreach (var result in _results.OrderBy(x=>x.Duration).Take(3))
-            {
-                FluentConsole.DarkGreen.Line($"Athlete {result.BibId} completed in {result.Duration.TotalMilliseconds} ms");
-            }
+            //FluentConsole.White.Line("Bike standings");
+            //foreach (var result in _results.OrderBy(x=>x.Duration).Take(3))
+            //{
+            //    FluentConsole.DarkGreen.Line($"Athlete {result.BibId} completed in {result.Duration.TotalMilliseconds} ms");
+            //}
 
             Context.Stop(Self);
         }

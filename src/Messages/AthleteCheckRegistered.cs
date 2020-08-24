@@ -2,7 +2,7 @@
 
 namespace Messages
 {
-    public class AthleteEntryRegistered
+    public class AthleteCheckRegistered
     {
         public string BibId { get; private set; }
 
@@ -10,12 +10,15 @@ namespace Messages
 
         public Gates Gate { get; private set; }
 
-        public AthleteEntryRegistered(string bibId, DateTime timestamp, Gates gate)
+        public AthleteCheckRegistered(string bibId, DateTime timestamp, Gates gate)
         {
             BibId = bibId;
             Timestamp = timestamp;
             Gate = gate;
         }
     }
+
+    
+
 
 }

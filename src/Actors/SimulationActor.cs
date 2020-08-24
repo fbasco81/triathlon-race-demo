@@ -7,10 +7,18 @@ namespace Actors
 {
     public class ExitDelayInSecond
     {
-        public int Min{ get; set; }
+        public int Min { get; set; }
 
-        public int Max{ get; set; }
+        public int Max { get; set; }
     }
+
+    public class GateInfo
+    {
+        public ExitDelayInSecond ExitDelay { get; set; }
+
+        public int NrOfIntermediateChecks { get; set; }
+    }
+
 
     /// <summary>
     /// Actor that simulates traffic.
@@ -28,15 +36,21 @@ namespace Actors
         private int _maxEntryDelayInMS = 5000;
         private int _minTransitionDelayInS = 1;
         private int _maxTransitionDelayInS = 2;
-        private Dictionary<Gates, ExitDelayInSecond> _exitDelay = new Dictionary<Gates, ExitDelayInSecond>()
+        private Dictionary<Gates, GateInfo> _exitDelay;
+        //private Dictionary<Gates, GateInfo> _exitDelay = new Dictionary<Gates, GateInfo>()
+        //{
+        //    //{ Gates.Swim.ToString(), new ExitDelayInSecond{Min = 8, Max = 16} },
+        //    //{ Gates.Bike.ToString(), new ExitDelayInSecond{Min = 25, Max = 40} },
+        //    //{ Gates.Run.ToString(), new ExitDelayInSecond{Min = 14, Max = 30} },
+        //    { Gates.Swim, new GateInfo(){ ExitDelay = new ExitDelayInSecond{Min = 1, Max = 2}, NrOfIntermediateChecks = 0 } },
+        //    { Gates.Bike,  new GateInfo(){ ExitDelay = new ExitDelayInSecond{Min = 3, Max = 4}, NrOfIntermediateChecks = 2 } },
+        //    { Gates.Run,  new GateInfo(){ ExitDelay = new ExitDelayInSecond{Min = 2, Max = 3}, NrOfIntermediateChecks = 1 } },
+        //};
+
+        public SimulationActor(Dictionary<Gates, GateInfo> gates)
         {
-            //{ Gates.Swim.ToString(), new ExitDelayInSecond{Min = 8, Max = 16} },
-            //{ Gates.Bike.ToString(), new ExitDelayInSecond{Min = 25, Max = 40} },
-            //{ Gates.Run.ToString(), new ExitDelayInSecond{Min = 14, Max = 30} },
-            { Gates.Swim, new ExitDelayInSecond{Min = 1, Max = 2} },
-            { Gates.Bike, new ExitDelayInSecond{Min = 3, Max = 4} },
-            { Gates.Run, new ExitDelayInSecond{Min = 2, Max = 3} },
-        };
+            _exitDelay = gates;
+        }
 
         /// <summary>
         /// Handle received message.
@@ -72,11 +86,11 @@ namespace Actors
             }
         }
 
-            /// <summary>
-            /// Handle StartSimulation message.
-            /// </summary>
-            /// <param name="msg">The message to handle.</param>
-            private void Handle(StartSimulation msg)
+        /// <summary>
+        /// Handle StartSimulation message.
+        /// </summary>
+        /// <param name="msg">The message to handle.</param>
+        private void Handle(StartSimulation msg)
         {
             // initialize state
             _numberOfAthletes = msg.NumberOfAthletes;
@@ -109,12 +123,7 @@ namespace Actors
             var standingActor = Context.System.ActorSelection($"/user/standing");
             standingActor.Tell(new RaceStarted(raceStartedAt));
 
-            var liveStandingScheduler = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(TimeSpan.FromSeconds(1),
-                TimeSpan.FromSeconds(1),
-                standingActor,
-                new PrintLiveStanding(3),
-                Self);
-            liveStandingScheduler.CancelAfter(TimeSpan.FromSeconds(7));//_raceDuration - _raceDuration.Subtract(TimeSpan.FromMilliseconds(_raceDuration.TotalMilliseconds / 10))
+
 
             for (int i = 0; i < msg.NumberOfAthletes; i++)
             {
@@ -122,13 +131,19 @@ namespace Actors
                 Self.Tell(new SimulatePassingAthlete(bibId, raceStartedAt));
             }
 
-            var raceClosed = new RaceClosed();
             var standingBikeActor = Context.System.ActorSelection($"/user/standing-bike");
             Context.System.Scheduler.ScheduleTellOnce(_raceDuration.Add(TimeSpan.FromSeconds(1)), standingBikeActor, new Shutdown(), Self);
 
-            Context.System.Scheduler.ScheduleTellOnce(_raceDuration, 
-                standingActor, 
-                new Shutdown(), 
+
+            Context.System.Scheduler.ScheduleTellOnce(_raceDuration,
+                raceControl,
+                new RaceClosed(),
+                Self);
+
+
+            Context.System.Scheduler.ScheduleTellOnce(_raceDuration,
+                standingActor,
+                new PrintFinalStanding(10),
                 Self);
 
         }
@@ -144,35 +159,64 @@ namespace Actors
             foreach (var kv in _exitDelay)
             {
                 var athletePasedAsEntered = new AthletePassed(msg.BibId, entryTimestamp, kv.Key);
-                ActorSelection entryGate = Context.System.ActorSelection($"/user/entrygate{kv.Key}");
-                Context.System.Scheduler.ScheduleTellOnce(delay, entryGate, athletePasedAsEntered, Self);
-                //Console.WriteLine("Athlete {0} entered gate {1} w/ delay {2}", msg.BibId, counter, delay.TotalSeconds);
+                ActorSelection entryGate = Context.System.ActorSelection($"/user/entrygate{kv.Key.ToString().ToLower()}");
+                Context.System.Scheduler.ScheduleTellOnce(
+                    computeMessageDelay(entryTimestamp), //delay
+                    entryGate, 
+                    athletePasedAsEntered, 
+                    Self);
+                //Console.WriteLine("Athlete {0} entered gate {1} at {2}", msg.BibId, kv.Key, entryTimestamp.ToString("HH:mm:ss.ffffff"));
 
                 var gateDelay = !isWinner ?
-                    TimeSpan.FromSeconds(_rnd.Next(kv.Value.Min, kv.Value.Max) + _rnd.NextDouble())
-                    : TimeSpan.FromSeconds(kv.Value.Min);
+                    TimeSpan.FromSeconds(_rnd.Next(kv.Value.ExitDelay.Min, kv.Value.ExitDelay.Max) + _rnd.NextDouble())
+                    : TimeSpan.FromSeconds(kv.Value.ExitDelay.Min);
+                //Console.WriteLine("Athlete #{0} - gate:{1} - gateDelay {2}", msg.BibId, kv.Key, gateDelay);
 
-                delay = delay + gateDelay;
-                DateTime exitTimestamp = entryTimestamp.Add(delay);
-                var athletePasedAsExited = new AthletePassed(msg.BibId, exitTimestamp, kv.Key);
-                ActorSelection exityGate = Context.System.ActorSelection($"/user/exitgate{kv.Key}");
-                if (msg.BibId ==_randomDisqualified)
+                for (int i = 0; i < kv.Value.NrOfIntermediateChecks; i++)
+                {
+                    ActorSelection gate = Context.System.ActorSelection($"/user/intermediategate-{kv.Key.ToString().ToLower()}-{i+1}");
+                    var intermediateFractionDelay = gateDelay.TotalMilliseconds / (kv.Value.NrOfIntermediateChecks + 1);
+                    //Console.WriteLine("Athlete #{0} - gate:{1} - intermediateFractionDelay {2}", msg.BibId, kv.Key, intermediateFractionDelay);
+                    var intermediateDelay = TimeSpan.FromMilliseconds(intermediateFractionDelay * (i+1));
+                    //Console.WriteLine("Athlete #{0} - gate:{1} - intermediateDelay {2}", msg.BibId, kv.Key, intermediateDelay);
+                    var intermediateTimestamp = entryTimestamp.Add(intermediateDelay);
+                    var athletePasedIntermediateCheck = new AthletePassed(msg.BibId, intermediateTimestamp, kv.Key);
+                    //Console.WriteLine("Athlete {0} intermediate {1} at {2}", msg.BibId, totalIntermediateGate, intermediateTimestamp.ToString("HH:mm:ss.ffffff"));
+                    Context.System.Scheduler.ScheduleTellOnce(
+                        computeMessageDelay(intermediateTimestamp),
+                        gate,
+                        athletePasedIntermediateCheck, 
+                        Self);
+                }
+
+                //delay = delay + gateDelay;
+                //DateTime exitTimestamp = entryTimestamp.Add(delay);
+                //var athletePasedAsExited = new AthletePassed(msg.BibId, exitTimestamp, kv.Key);
+                DateTime exitTimestamp = entryTimestamp.Add(gateDelay);
+                var athletePassedAsExited = new AthletePassed(msg.BibId, exitTimestamp, kv.Key);
+                ActorSelection exityGate = Context.System.ActorSelection($"/user/exitgate{kv.Key.ToString().ToLower()}");
+                if (msg.BibId == _randomDisqualified && kv.Key == Gates.Run)
                 {
                     FluentConsole.Magenta.Line($"Athlete #{_randomDisqualified} should be disqualified for missing exiting gate {kv.Key}");
                 }
                 else
                 {
-                    Context.System.Scheduler.ScheduleTellOnce(delay, exityGate, athletePasedAsExited, Self);
+                    Context.System.Scheduler.ScheduleTellOnce(
+                        computeMessageDelay(exitTimestamp), //delay, 
+                        exityGate, 
+                        athletePassedAsExited, 
+                        Self);
                     //Console.WriteLine("Athlete {0} exited gate {1} w/ delay {2}", msg.BibId, counter, delay.TotalSeconds);
+                    //Console.WriteLine("Athlete {0} exited gate {1} at {2}", msg.BibId, kv.Key, exitTimestamp.ToString("HH:mm:ss.ffffff"));
                 }
 
                 if (counter < _exitDelay.Count)
                 {
-                    var transitionTime = !isWinner ? 
+                    var transitionTime = !isWinner ?
                         TimeSpan.FromSeconds(_rnd.Next(_minTransitionDelayInS, _minTransitionDelayInS) + _rnd.NextDouble())
                         : TimeSpan.FromSeconds(_minTransitionDelayInS);
                     entryTimestamp = exitTimestamp.Add(transitionTime);
-                    delay = delay + transitionTime;
+                    //delay = delay + transitionTime;
                 }
 
                 counter++;
@@ -184,93 +228,10 @@ namespace Actors
             }
         }
 
-        /// <summary>
-        /// Handle SimulatePassingCar message.
-        /// </summary>
-        /// <param name="msg">The message to handle.</param>
-        //private void Handle(SimulatePassingCar msg)
-        //{
-        //    //  simulate car entry
-        //    int entryLane = _rnd.Next(1, 4);
-        //    ActorSelection entryCamera = Context.System.ActorSelection($"/user/entrycam{entryLane}");
-        //    DateTime entryTimestamp = DateTime.Now;
-        //    VehiclePassed vehiclePassed = new VehiclePassed(msg.VehicleId, entryTimestamp);
-        //    entryCamera.Tell(vehiclePassed);
-
-        //    // simulate car exit
-        //    int exitLane = _rnd.Next(1, 4);
-        //    TimeSpan delay = TimeSpan.FromSeconds(_rnd.Next(_minExitDelayInS, _maxExitDelayInS) + _rnd.NextDouble());
-        //    DateTime exitTimestamp = entryTimestamp.Add(delay);
-        //    ActorSelection exitCamera = Context.System.ActorSelection($"/user/exitcam{entryLane}");
-        //    vehiclePassed = new VehiclePassed(msg.VehicleId, exitTimestamp);
-        //    Context.System.Scheduler.ScheduleTellOnce(delay, exitCamera, vehiclePassed, Self);
-
-        //    // handle progress
-        //    _carsSimulated++;
-        //    if (_carsSimulated < _numberOfCars)
-        //    {
-        //        SimulatePassingCar simulatePassingCar = new SimulatePassingCar(GenerateRandomLicenseNumber());
-        //        Context.System.Scheduler.ScheduleTellOnce(
-        //            _rnd.Next(_minEntryDelayInMS, _maxEntryDelayInMS), Self, simulatePassingCar, Self);
-        //    }
-        //    else
-        //    {
-        //        Self.Tell(new Shutdown());
-        //    }
-        //}
-
-        #region Private helper methods
-
-        private string _validLicenseNumberChars = "DFGHJKLNPRSTXYZ";
-
-        /// <summary>
-        /// Generate random licensenumber.
-        /// </summary>
-        private string GenerateRandomLicenseNumber()
+        private TimeSpan computeMessageDelay(DateTime timespan)
         {
-            int type = _rnd.Next(1, 9);
-            string kenteken = null;
-            switch (type)
-            {
-                case 1: // 99-AA-99
-                    kenteken = string.Format("{0:00}-{1}-{2:00}", _rnd.Next(1, 99), GenerateRandomCharacters(2), _rnd.Next(1, 99));
-                    break;
-                case 2: // AA-99-AA
-                    kenteken = string.Format("{0}-{1:00}-{2}", GenerateRandomCharacters(2), _rnd.Next(1, 99), GenerateRandomCharacters(2));
-                    break;
-                case 3: // AA-AA-99
-                    kenteken = string.Format("{0}-{1}-{2:00}", GenerateRandomCharacters(2), GenerateRandomCharacters(2), _rnd.Next(1, 99));
-                    break;
-                case 4: // 99-AA-AA
-                    kenteken = string.Format("{0:00}-{1}-{2}", _rnd.Next(1, 99), GenerateRandomCharacters(2), GenerateRandomCharacters(2));
-                    break;
-                case 5: // 99-AAA-9
-                    kenteken = string.Format("{0:00}-{1}-{2}", _rnd.Next(1, 99), GenerateRandomCharacters(3), _rnd.Next(1, 10));
-                    break;
-                case 6: // 9-AAA-99
-                    kenteken = string.Format("{0}-{1}-{2:00}", _rnd.Next(1, 9), GenerateRandomCharacters(3), _rnd.Next(1, 10));
-                    break;
-                case 7: // AA-999-A
-                    kenteken = string.Format("{0}-{1:000}-{2}", GenerateRandomCharacters(2), _rnd.Next(1, 999), GenerateRandomCharacters(1));
-                    break;
-                case 8: // A-999-AA
-                    kenteken = string.Format("{0}-{1:000}-{2}", GenerateRandomCharacters(1), _rnd.Next(1, 999), GenerateRandomCharacters(2));
-                    break;
-            }
-
-            return kenteken;
+            var delay = timespan.Subtract(DateTime.Now);
+            return delay.TotalMilliseconds > 0? delay : TimeSpan.FromMilliseconds(0);
         }
-
-        private string GenerateRandomCharacters(int aantal)
-        {
-            char[] chars = new char[aantal];
-            for (int i = 0; i < aantal; i++)
-            {
-                chars[i] = _validLicenseNumberChars[_rnd.Next(_validLicenseNumberChars.Length - 1)];
-            }
-            return new string(chars);
-        }
-
-        #endregion
     }
 }

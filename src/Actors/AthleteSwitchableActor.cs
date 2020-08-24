@@ -2,6 +2,7 @@
 using Messages;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Actors
 {
@@ -51,24 +52,12 @@ namespace Actors
                     {
                         _gates[msg.Gate.ToString()] = new GateInOut { In = msg.Timestamp };
                     }
-                    else
-                    {
-                        disquilify(new AthleteDisqualified(
-                            msg.BibId, msg.Timestamp,
-                            msg.Gate, GateActions.Entering));
-                    }
 
                     // flip the switch
                     Become(Swimming);
                 });
 
-            Receive<AthleteExitRegistered>(
-                msg =>
-                {
-                    disquilify(new AthleteDisqualified(
-                        msg.BibId, msg.Timestamp,
-                        msg.Gate, GateActions.Exiting));
-                });
+            handleRaceClosed();
         }
 
 
@@ -83,24 +72,12 @@ namespace Actors
                         _gates[msg.Gate.ToString()].Out = msg.Timestamp;
                         _gates[msg.Gate.ToString()].Duration = msg.Timestamp.Subtract(_gates[msg.Gate.ToString()].In);
                     }
-                    else
-                    {
-                        disquilify(new AthleteDisqualified(
-                            msg.BibId, msg.Timestamp,
-                            msg.Gate, GateActions.Exiting));
-                    }
 
                     // flip the switch
                     Become(T1);
                 });
 
-            Receive<AthleteEntryRegistered>(
-                msg =>
-                {
-                    disquilify(new AthleteDisqualified(
-                        msg.BibId, msg.Timestamp,
-                        msg.Gate, GateActions.Entering));
-                });
+            handleRaceClosed();
         }
 
         private void T1()
@@ -111,28 +88,16 @@ namespace Actors
                     if (msg.Gate == Gates.Bike)
                     {
                         _gates[msg.Gate.ToString()] = new GateInOut { In = msg.Timestamp };
-                        var timeSpan = _entryTimestamp.Subtract(_gates[Gates.Swim.ToString()].Out.Value);
+                        var timeSpan = msg.Timestamp.Subtract(_gates[Gates.Swim.ToString()].Out.Value);
                         _gates["T1"] = new GateInOut { Duration = timeSpan };
                         _standingActor.Tell(msg);
-                    }
-                    else
-                    {
-                        disquilify(new AthleteDisqualified(
-                            msg.BibId, msg.Timestamp,
-                            msg.Gate, GateActions.Entering));
                     }
 
                     // flip the switch
                     Become(Biking);
                 });
 
-            Receive<AthleteExitRegistered>(
-                msg =>
-                {
-                    disquilify(new AthleteDisqualified(
-                        msg.BibId, msg.Timestamp,
-                        msg.Gate, GateActions.Exiting));
-                });
+            handleRaceClosed();
         }
 
         private void Biking()
@@ -145,24 +110,12 @@ namespace Actors
                         _gates[msg.Gate.ToString()].Out = msg.Timestamp;
                         _gates[msg.Gate.ToString()].Duration = msg.Timestamp.Subtract(_gates[msg.Gate.ToString()].In);
                     }
-                    else
-                    {
-                        disquilify(new AthleteDisqualified(
-                            msg.BibId, msg.Timestamp,
-                            msg.Gate, GateActions.Exiting));
-                    }
 
                     // flip the switch
                     Become(T2);
                 });
 
-            Receive<AthleteEntryRegistered>(
-                msg =>
-                {
-                    disquilify(new AthleteDisqualified(
-                        msg.BibId, msg.Timestamp,
-                        msg.Gate, GateActions.Entering));
-                });
+            handleRaceClosed();
         }
 
         private void T2()
@@ -173,12 +126,13 @@ namespace Actors
                     if (msg.Gate == Gates.Run)
                     {
                         _gates[msg.Gate.ToString()] = new GateInOut { In = msg.Timestamp };
-                        var timeSpan = _entryTimestamp.Subtract(_gates[Gates.Bike.ToString()].Out.Value);
+                        var timeSpan = msg.Timestamp.Subtract(_gates[Gates.Bike.ToString()].Out.Value);
                         _gates["T2"] = new GateInOut { Duration = timeSpan };
+                        _standingActor.Tell(msg);
                     }
                     else
                     {
-                        disquilify(new AthleteDisqualified(
+                        disqualify(new AthleteDisqualified(
                             msg.BibId, msg.Timestamp,
                             msg.Gate, GateActions.Entering));
                     }
@@ -187,13 +141,7 @@ namespace Actors
                     Become(Running);
                 });
 
-            Receive<AthleteExitRegistered>(
-                msg =>
-                {
-                    disquilify(new AthleteDisqualified(
-                        msg.BibId, msg.Timestamp,
-                        msg.Gate, GateActions.Entering));
-                });
+            handleRaceClosed();
         }
 
         private void Running()
@@ -207,27 +155,13 @@ namespace Actors
                         _gates[msg.Gate.ToString()].Duration = msg.Timestamp.Subtract(_gates[msg.Gate.ToString()].In);
 
                         Self.Tell(new Shutdown());
-
-                        Become(RaceCompleted);
-                    }
-                    else
-                    {
-                        disquilify(new AthleteDisqualified(
-                            msg.BibId, msg.Timestamp,
-                            msg.Gate, GateActions.Exiting));
                     }
 
                     // flip the switch
                     Become(RaceCompleted);
                 });
 
-            Receive<AthleteEntryRegistered>(
-                msg =>
-                {
-                    disquilify(new AthleteDisqualified(
-                        msg.BibId, msg.Timestamp,
-                        msg.Gate, GateActions.Entering));
-                });
+            handleRaceClosed();
         }
 
         private void RaceCompleted()
@@ -235,25 +169,92 @@ namespace Actors
             Receive<Shutdown>(
                 msg =>
                 {
-                    var raceFinishedAt = _gates[Gates.Swim.ToString()].Out.Value;
-                    var raceCompleted = new RaceCompleted(
-                        _bibId,
-                        raceFinishedAt,
-                        raceFinishedAt.Subtract(_gates[Gates.Swim.ToString()].In));
+                    var missedGate = missGates();
+                    if (missedGate != null)
+                    {
+                        disqualify( new AthleteDisqualified(
+                                _bibId, DateTime.Now, missedGate.Gate, missedGate.GateAction));
+                    }
+                    else
+                    {
+                        var raceFinishedAt = _gates[Gates.Run.ToString()].Out.Value;
+                        var raceCompleted = new AthleteRaceCompleted(
+                            _bibId,
+                            raceFinishedAt,
+                            raceFinishedAt.Subtract(_gates[Gates.Swim.ToString()].In));
 
-                    _standingActor.Tell(raceCompleted);
+                        _standingActor.Tell(raceCompleted);
+                    }
 
-                    FluentConsole.Gray.Line($"Athlete #{_bibId} is shutting down.");
+                    //FluentConsole.Gray.Line($"Athlete #{_bibId} is shutting down.");
                     Context.Stop(Self);
                 });
         }
 
-        private void disquilify(AthleteDisqualified msg)
+        private void Disqualified()
+        {
+            Receive<Shutdown>(
+                msg =>
+                {
+                    var missedGate = missGates();
+                    if (missedGate != null)
+                    {
+                        disqualify(new AthleteDisqualified(
+                                _bibId, DateTime.Now, missedGate.Gate, missedGate.GateAction));
+                    }
+
+                    //FluentConsole.Gray.Line($"Athlete #{_bibId} is shutting down.");
+                    Context.Stop(Self);
+                });
+        }
+
+        private void handleRaceClosed()
+        {
+            //TODO: handle Shutdown for each state
+            Receive<RaceClosed>(
+                msg =>
+                {
+                    Self.Tell(new Shutdown());
+                    //FluentConsole.White.Line($"Athlete {_bibId} has been shut down while swimming");
+                    Become(Disqualified);
+                });
+        }
+
+        private void disqualify(AthleteDisqualified msg)
         {
             FluentConsole.Red.Line($"Athete #{msg.BibId} has been disqualified");
             _standingActor.Tell(msg);
             // flip the switch
             Become(RaceCompleted);
+        }
+
+        private MissedGateInfo missGates()
+        {
+            foreach(var kv in _gates.Where(x => x.Key != "T1" && x.Key != "T2"))
+            {
+                if (kv.Value == null)
+                {
+                   return new MissedGateInfo( (Gates)Enum.Parse(typeof(Gates), kv.Key, true), GateActions.Entering);
+                }
+                else if(kv.Value.Out == null)
+                {
+                   return new MissedGateInfo((Gates)Enum.Parse(typeof(Gates), kv.Key, true), GateActions.Exiting);
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public class MissedGateInfo
+    {
+        public Gates Gate { get; private set; }
+        public GateActions GateAction { get; private set; }
+
+        public MissedGateInfo(Gates gate, GateActions gateAction)
+        {
+            Gate = gate;
+            GateAction = gateAction;
         }
     }
 }

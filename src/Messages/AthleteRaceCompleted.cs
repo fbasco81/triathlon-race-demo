@@ -4,11 +4,7 @@ using System.Text;
 
 namespace Messages
 {
-    public class RaceClosed
-    {
-    }
-
-    public class RaceCompleted
+    public class AthleteRaceCompleted
     {
         public string BibId { get; private set; }
 
@@ -16,7 +12,7 @@ namespace Messages
 
         public TimeSpan Duration { get; private set; }
 
-        public RaceCompleted(string bibId, DateTime timestamp, TimeSpan duration)
+        public AthleteRaceCompleted(string bibId, DateTime timestamp, TimeSpan duration)
         {
             BibId = bibId;
             Timestamp = timestamp;

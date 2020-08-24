@@ -192,7 +192,7 @@ namespace Actors
 
             if(msg.Gate == Gates.Run)
             {
-                var raceCompleted = new RaceCompleted(
+                var raceCompleted = new AthleteRaceCompleted(
                     msg.BibId,
                     msg.Timestamp,
                     msg.Timestamp.Subtract(_gates[Gates.Swim.ToString()].In));
