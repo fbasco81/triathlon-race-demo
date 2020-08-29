@@ -33,6 +33,20 @@ namespace Actors
         private DateTime _raceStartedAt;
         private ICancelable _liveStandingScheduler;
         private int _entryRegisteredCounter;
+        private IActorRef _athleteResultFileDumperActor;
+        private string _fileRaceResultPath = "result-completed.txt";
+
+        public StandingActor()
+        {
+            if (System.IO.File.Exists(_fileRaceResultPath))
+            {
+                System.IO.File.Delete(_fileRaceResultPath);
+            }
+
+            var props = Props.Create<AthleteResultFileDumperActor>(_fileRaceResultPath);
+            var actorName = "filewriter";
+            _athleteResultFileDumperActor = Context.ActorOf(props, actorName);
+        }
 
         /// <summary>
         /// Handle received message.
@@ -64,6 +78,9 @@ namespace Actors
                     Handle(rc);
                     break;
                 case PrintFinalStanding ss:
+                    Handle(ss);
+                    break;
+                case AthleteRaceResult ss:
                     Handle(ss);
                     break;
                 case Shutdown sd:
@@ -154,11 +171,6 @@ namespace Actors
             FluentConsole.DarkGreen.Line(sb.ToString());
         }
 
-        private void Handle(Shutdown msg)
-        {
-            Context.Stop(Self);
-        }
-
         private void Handle(PrintLiveStanding msg)
         {
             if (_liveStanding.Count() == 0) return;
@@ -189,6 +201,21 @@ namespace Actors
             FluentConsole.DarkGreen.Line(sb.ToString());
         }
 
+        private void Handle(AthleteRaceResult msg)
+        {
 
+            _athleteResultFileDumperActor.Tell(msg);
+        }
+
+
+
+        private void Handle(Shutdown msg)
+        {
+            if (_athleteResultFileDumperActor != null)
+            {
+                Context.Stop(_athleteResultFileDumperActor);
+            }
+            Context.Stop(Self);
+        }
     }
 }

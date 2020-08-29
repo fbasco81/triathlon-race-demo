@@ -157,6 +157,8 @@ namespace Actors
                         Self.Tell(new Shutdown());
                     }
 
+                    _standingActor.Tell(new AthleteRaceResult(_bibId, _gates));
+
                     // flip the switch
                     Become(RaceCompleted);
                 });
@@ -187,7 +189,7 @@ namespace Actors
                     }
 
                     //FluentConsole.Gray.Line($"Athlete #{_bibId} is shutting down.");
-                    Context.Stop(Self);
+                    shutdown();
                 });
         }
 
@@ -204,7 +206,7 @@ namespace Actors
                     }
 
                     //FluentConsole.Gray.Line($"Athlete #{_bibId} is shutting down.");
-                    Context.Stop(Self);
+                    shutdown();
                 });
         }
 
@@ -226,6 +228,12 @@ namespace Actors
             _standingActor.Tell(msg);
             // flip the switch
             Become(RaceCompleted);
+        }
+
+        private void shutdown()
+        {
+            //Console.WriteLine($"Actor {_bibId} shuting down");
+            Context.Stop(Self);
         }
 
         private MissedGateInfo missGates()

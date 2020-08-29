@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Actors
+namespace Messages
 {
     public class GateInOut
     {
