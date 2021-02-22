@@ -21,12 +21,12 @@ namespace Actors
 
 
     /// <summary>
-    /// Actor that simulates traffic.
+    /// Actor that simulates the race.
     /// </summary>
     public class SimulationActor : UntypedActor
     {
         private int _numberOfAthletes;
-        private int _atheltesSimulated;
+        private int _athletesSimulated;
         private string _randomWinner;
         private string _randomDisqualified;
         private Random _rnd;
@@ -79,7 +79,6 @@ namespace Actors
         {
             var raceControl = Context.System.ActorSelection($"/user/race-control");
 
-
             for (int i = 0; i < msg.NumberOfAthletes; i++)
             {
                 raceControl.Tell(new Test(i.ToString()));
@@ -94,13 +93,8 @@ namespace Actors
         {
             // initialize state
             _numberOfAthletes = msg.NumberOfAthletes;
-            _atheltesSimulated = 0;
+            _athletesSimulated = 0;
             _rnd = new Random();
-
-            // start simulationloop
-            //var simulatePassingCar = new SimulatePassingCar(GenerateRandomLicenseNumber());
-            //Context.System.Scheduler.ScheduleTellOnce(
-            //    _rnd.Next(_minEntryDelayInMS, _maxEntryDelayInMS), Self, simulatePassingCar, Self);
 
             var raceStartedAt = DateTime.Now;
             _randomWinner = _rnd.Next(1, msg.NumberOfAthletes).ToString();
@@ -122,8 +116,6 @@ namespace Actors
 
             var standingActor = Context.System.ActorSelection($"/user/standing");
             standingActor.Tell(new RaceStarted(raceStartedAt));
-
-
 
             for (int i = 0; i < msg.NumberOfAthletes; i++)
             {
@@ -150,38 +142,33 @@ namespace Actors
 
         private void Handle(SimulatePassingAthlete msg)
         {
-            _atheltesSimulated++;
+            _athletesSimulated++;
             var isWinner = msg.BibId == _randomWinner;
 
-            DateTime entryTimestamp = DateTime.Now;// msg.RaceStartedAt;
-            TimeSpan delay = TimeSpan.FromSeconds(0);
+            DateTime entryTimestamp = DateTime.Now;
+          
             var counter = 1;
             foreach (var kv in _exitDelay)
             {
-                var athletePasedAsEntered = new AthletePassed(msg.BibId, entryTimestamp, kv.Key);
+                var athletePassedAsEntered = new AthletePassed(msg.BibId, entryTimestamp, kv.Key);
                 ActorSelection entryGate = Context.System.ActorSelection($"/user/entrygate{kv.Key.ToString().ToLower()}");
                 Context.System.Scheduler.ScheduleTellOnce(
                     computeMessageDelay(entryTimestamp), //delay
                     entryGate, 
-                    athletePasedAsEntered, 
+                    athletePassedAsEntered, 
                     Self);
-                //Console.WriteLine("Athlete {0} entered gate {1} at {2}", msg.BibId, kv.Key, entryTimestamp.ToString("HH:mm:ss.ffffff"));
-
+          
                 var gateDelay = !isWinner ?
                     TimeSpan.FromSeconds(_rnd.Next(kv.Value.ExitDelay.Min, kv.Value.ExitDelay.Max) + _rnd.NextDouble())
                     : TimeSpan.FromSeconds(kv.Value.ExitDelay.Min);
-                //Console.WriteLine("Athlete #{0} - gate:{1} - gateDelay {2}", msg.BibId, kv.Key, gateDelay);
-
+                
                 for (int i = 0; i < kv.Value.NrOfIntermediateChecks; i++)
                 {
                     ActorSelection gate = Context.System.ActorSelection($"/user/intermediategate-{kv.Key.ToString().ToLower()}-{i+1}");
                     var intermediateFractionDelay = gateDelay.TotalMilliseconds / (kv.Value.NrOfIntermediateChecks + 1);
-                    //Console.WriteLine("Athlete #{0} - gate:{1} - intermediateFractionDelay {2}", msg.BibId, kv.Key, intermediateFractionDelay);
                     var intermediateDelay = TimeSpan.FromMilliseconds(intermediateFractionDelay * (i+1));
-                    //Console.WriteLine("Athlete #{0} - gate:{1} - intermediateDelay {2}", msg.BibId, kv.Key, intermediateDelay);
                     var intermediateTimestamp = entryTimestamp.Add(intermediateDelay);
                     var athletePasedIntermediateCheck = new AthletePassed(msg.BibId, intermediateTimestamp, kv.Key);
-                    //Console.WriteLine("Athlete {0} intermediate {1} at {2}", msg.BibId, totalIntermediateGate, intermediateTimestamp.ToString("HH:mm:ss.ffffff"));
                     Context.System.Scheduler.ScheduleTellOnce(
                         computeMessageDelay(intermediateTimestamp),
                         gate,
@@ -189,9 +176,6 @@ namespace Actors
                         Self);
                 }
 
-                //delay = delay + gateDelay;
-                //DateTime exitTimestamp = entryTimestamp.Add(delay);
-                //var athletePasedAsExited = new AthletePassed(msg.BibId, exitTimestamp, kv.Key);
                 DateTime exitTimestamp = entryTimestamp.Add(gateDelay);
                 var athletePassedAsExited = new AthletePassed(msg.BibId, exitTimestamp, kv.Key);
                 ActorSelection exityGate = Context.System.ActorSelection($"/user/exitgate{kv.Key.ToString().ToLower()}");
@@ -206,8 +190,6 @@ namespace Actors
                         exityGate, 
                         athletePassedAsExited, 
                         Self);
-                    //Console.WriteLine("Athlete {0} exited gate {1} w/ delay {2}", msg.BibId, counter, delay.TotalSeconds);
-                    //Console.WriteLine("Athlete {0} exited gate {1} at {2}", msg.BibId, kv.Key, exitTimestamp.ToString("HH:mm:ss.ffffff"));
                 }
 
                 if (counter < _exitDelay.Count)
@@ -216,13 +198,12 @@ namespace Actors
                         TimeSpan.FromSeconds(_rnd.Next(_minTransitionDelayInS, _minTransitionDelayInS) + _rnd.NextDouble())
                         : TimeSpan.FromSeconds(_minTransitionDelayInS);
                     entryTimestamp = exitTimestamp.Add(transitionTime);
-                    //delay = delay + transitionTime;
                 }
 
                 counter++;
             }
 
-            if (_atheltesSimulated == _numberOfAthletes)
+            if (_athletesSimulated == _numberOfAthletes)
             {
                 Self.Tell(new Shutdown());
             }

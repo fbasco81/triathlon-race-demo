@@ -23,7 +23,7 @@ namespace Actors
     }
 
     /// <summary>
-    /// Actor that simulates traffic.
+    /// Actor that simulates standing.
     /// </summary>
     public class StandingActor : UntypedActor
     {
@@ -92,7 +92,6 @@ namespace Actors
         private void Handle(RaceStarted msg)
         {
             _raceStartedAt = msg.Timestamp;
-            
         }
 
         private void Handle(RaceClosed msg)
@@ -123,7 +122,6 @@ namespace Actors
             else
             {
                 _liveStanding.Add(msg.BibId, new LiveResult(racedTime, 1, msg.Timestamp));
-                //FluentConsole.White.Line($"Athlete {msg.BibId} has been added to the live standing");
             }
         }
 
@@ -135,8 +133,6 @@ namespace Actors
                 var r = _liveStanding[msg.BibId];
                 _liveStanding[msg.BibId] = new LiveResult(racedTime, r.NrOfGates + 1, msg.Timestamp);
             }
-
-            //FluentConsole.White.Line($"Athlete {msg.BibId} has been tracked at gate {msg.Gate} at {msg.Timestamp.ToString("HH:mm:ss.ffffff")} ");
         }
 
         /// <summary>

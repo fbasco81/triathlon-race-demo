@@ -5,7 +5,7 @@ using System;
 namespace Actors
 {
     /// <summary>
-    /// Actor that represents an entry camera.
+    /// Actor that represents an intermediate gate.
     /// </summary>
     public class IntermediateGateActor : UntypedActor
     {
@@ -29,10 +29,10 @@ namespace Actors
                     Handle(vp);
                     break;
             }
-        }        
+        }
 
         /// <summary>
-        /// Handle VehiclePassed message
+        /// Handle AthletePassed message
         /// </summary>
         /// <param name="msg">The message to handle.</param>
         private void Handle(AthletePassed msg)

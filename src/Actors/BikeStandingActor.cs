@@ -6,7 +6,7 @@ using System.Linq;
 namespace Actors
 {
     /// <summary>
-    /// Actor that simulates traffic.
+    /// Actor that simulates bike standing .
     /// </summary>
     public class BikeStandingActor : UntypedActor
     {
@@ -30,7 +30,7 @@ namespace Actors
         }
 
         /// <summary>
-        /// Handle StartSimulation message.
+        /// Handle BikeCompleted message.
         /// </summary>
         /// <param name="msg">The message to handle.</param>
         private void Handle(BikeCompleted msg)
@@ -42,12 +42,6 @@ namespace Actors
 
         private void Handle(Shutdown msg)
         {
-            //FluentConsole.White.Line("Bike standings");
-            //foreach (var result in _results.OrderBy(x=>x.Duration).Take(3))
-            //{
-            //    FluentConsole.DarkGreen.Line($"Athlete {result.BibId} completed in {result.Duration.TotalMilliseconds} ms");
-            //}
-
             Context.Stop(Self);
         }
     }

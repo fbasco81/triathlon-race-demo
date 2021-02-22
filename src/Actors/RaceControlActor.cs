@@ -10,13 +10,11 @@ namespace Actors
     /// </summary>
     public class RaceControlActor : UntypedActor
     {
-        //private RoadInfo _roadInfo;
         private List<string> _athletes = new List<string>();
 
         public RaceControlActor()
         {
             // initialize state
-            //_roadInfo = roadInfo;
         }
 
         /// <summary>
@@ -45,21 +43,14 @@ namespace Actors
             }
         }
 
-        private void Handle(Test msg)
-        {
-            _athletes.Add(msg.BibId);
-            FluentConsole.White.Line($"Path: {Self.Path}, Athletes: {_athletes.Count}");
-        }
-
         private void Handle(AthleteRegistered msg)
         {
-            //var props = Props.Create<AthleteActor>(msg.BibId);
             var props = Props.Create<AthleteSwitchableActor>(msg.BibId);
             var athleteActor = Context.ActorOf(props, $"athlete-{msg.BibId}");
         }
 
         /// <summary>
-        /// Handle VehicleEntryRegistered message.
+        /// Handle AthleteEntryRegistered message.
         /// </summary>
         /// <param name="msg">The message to handle.</param>
         private void Handle(AthleteEntryRegistered msg)

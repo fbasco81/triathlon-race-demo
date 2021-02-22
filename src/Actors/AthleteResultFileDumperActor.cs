@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-using Akka.Streams.Dsl;
 
 namespace Actors
 {
@@ -32,9 +31,6 @@ namespace Actors
                     }
                 }
 
-                //FileIO.ToFile(new FileInfo(_filePath)).
-
-                //Console.WriteLine(String.Join("|", entries));
                 File.AppendAllText(
                     _filePath,
                     String.Join("|", entries) + System.Environment.NewLine

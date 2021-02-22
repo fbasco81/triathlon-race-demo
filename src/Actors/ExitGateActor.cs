@@ -5,7 +5,7 @@ using System;
 namespace Actors
 {
     /// <summary>
-    /// Actor that represents an exit camera.
+    /// Actor that represents an exit gate.
     /// </summary>
     public class ExitGateActor : UntypedActor
     {
@@ -29,17 +29,16 @@ namespace Actors
                     Handle(vp);
                     break;
             }
-        }   
+        }
 
         /// <summary>
-        /// Handle VehiclePassed message
+        /// Handle AthletePassed message
         /// </summary>
         /// <param name="msg">The message to handle.</param>
         private void Handle(AthletePassed msg)
         {
             var athleteExitRegistered = new AthleteExitRegistered(msg.BibId, msg.Timestamp, msg.Gate);
             _raceControlActor.Tell(athleteExitRegistered);
-            //Console.WriteLine("Athlete {0} exited gate", msg.BibId);
         }
     }
 }
