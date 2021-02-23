@@ -10,8 +10,6 @@ namespace Actors
     /// </summary>
     public class RaceControlActor : UntypedActor
     {
-        private List<string> _athletes = new List<string>();
-
         public RaceControlActor()
         {
             // initialize state
@@ -55,21 +53,9 @@ namespace Actors
         /// <param name="msg">The message to handle.</param>
         private void Handle(AthleteEntryRegistered msg)
         {
-            //ICanTell athleteActor;
-
-            //if ((int)msg.Gate == 1)
-            //{
-            //    var props = Props.Create<AthleteActor>(msg.BibId);
-            //    athleteActor = Context.ActorOf(props, $"athlete-{msg.BibId}");
-            //}
-            //else
-            //{
-            //    athleteActor = Context.ActorSelection($"/user/race-control/*/athlete-{msg.BibId}");
-            //}
             var athleteActor = Context.ActorSelection($"/user/race-control/*/athlete-{msg.BibId}");
 
             athleteActor.Tell(msg, Self);
-
         }
 
         /// <summary>
@@ -84,8 +70,6 @@ namespace Actors
 
         private void Handle(AthleteCheckRegistered msg)
         {
-            //var athleteActor = Context.ActorSelection($"/user/race-control/*/athlete-{msg.BibId}");
-            //athleteActor.Tell(msg);
             var standingActor = Context.ActorSelection($"/user/standing");
             standingActor.Tell(msg);
         }

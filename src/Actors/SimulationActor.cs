@@ -32,20 +32,8 @@ namespace Actors
         private Random _rnd;
         private TimeSpan _raceDuration = TimeSpan.FromSeconds(20);
 
-        private int _minEntryDelayInMS = 50;
-        private int _maxEntryDelayInMS = 5000;
         private int _minTransitionDelayInS = 1;
-        private int _maxTransitionDelayInS = 2;
         private Dictionary<Gates, GateInfo> _exitDelay;
-        //private Dictionary<Gates, GateInfo> _exitDelay = new Dictionary<Gates, GateInfo>()
-        //{
-        //    //{ Gates.Swim.ToString(), new ExitDelayInSecond{Min = 8, Max = 16} },
-        //    //{ Gates.Bike.ToString(), new ExitDelayInSecond{Min = 25, Max = 40} },
-        //    //{ Gates.Run.ToString(), new ExitDelayInSecond{Min = 14, Max = 30} },
-        //    { Gates.Swim, new GateInfo(){ ExitDelay = new ExitDelayInSecond{Min = 1, Max = 2}, NrOfIntermediateChecks = 0 } },
-        //    { Gates.Bike,  new GateInfo(){ ExitDelay = new ExitDelayInSecond{Min = 3, Max = 4}, NrOfIntermediateChecks = 2 } },
-        //    { Gates.Run,  new GateInfo(){ ExitDelay = new ExitDelayInSecond{Min = 2, Max = 3}, NrOfIntermediateChecks = 1 } },
-        //};
 
         public SimulationActor(Dictionary<Gates, GateInfo> gates)
         {

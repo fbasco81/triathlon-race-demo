@@ -32,13 +32,6 @@ namespace Actors
             _standingActor = Context.System.ActorSelection("/user/standing");
             _bikeStandingActor = Context.System.ActorSelection("/user/standing-bike");
 
-            //Receive<Shutdown>(
-            //    msg =>
-            //    {
-            //        FluentConsole.Gray.Line($"Athlete #{_bibId} is shutting down.");
-            //        Context.Stop(Self);
-            //    });
-
             // initialize state
             WaitingToStart();
         }
@@ -205,7 +198,6 @@ namespace Actors
                                 _bibId, DateTime.Now, missedGate.Gate, missedGate.GateAction));
                     }
 
-                    //FluentConsole.Gray.Line($"Athlete #{_bibId} is shutting down.");
                     shutdown();
                 });
         }
@@ -217,7 +209,6 @@ namespace Actors
                 msg =>
                 {
                     Self.Tell(new Shutdown());
-                    //FluentConsole.White.Line($"Athlete {_bibId} has been shut down while swimming");
                     Become(Disqualified);
                 });
         }
@@ -232,7 +223,6 @@ namespace Actors
 
         private void shutdown()
         {
-            //Console.WriteLine($"Actor {_bibId} shuting down");
             Context.Stop(Self);
         }
 
