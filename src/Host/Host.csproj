@@ -14,5 +14,9 @@
      <ProjectReference Include="..\Actors\Actors.csproj" />
      <ProjectReference Include="..\Messages\Messages.csproj" />
    </ItemGroup>
+  
+   <ItemGroup>
+     <Folder Include="diagram\" />
+   </ItemGroup>
 
 </Project>
