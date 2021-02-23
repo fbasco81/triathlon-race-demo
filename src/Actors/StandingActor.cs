@@ -80,9 +80,11 @@ namespace Actors
                 case PrintFinalStanding ss:
                     Handle(ss);
                     break;
-                case AthleteRaceResult ss:
-                    Handle(ss);
-                    break;
+                // TODO: verify if required
+
+                //case AthleteRaceResult ss:
+                //    Handle(ss);
+                //    break;
                 case Shutdown sd:
                     Handle(sd);
                     break;
@@ -197,11 +199,12 @@ namespace Actors
             FluentConsole.DarkGreen.Line(sb.ToString());
         }
 
-        private void Handle(AthleteRaceResult msg)
-        {
+        // TODO: verify if required
+        //private void Handle(AthleteRaceResult msg)
+        //{
 
-            _athleteResultFileDumperActor.Tell(msg);
-        }
+        //    _athleteResultFileDumperActor.Tell(msg);
+        //}
 
 
 
