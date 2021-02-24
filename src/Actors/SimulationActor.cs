@@ -98,8 +98,8 @@ namespace Actors
                 Self.Tell(new SimulatePassingAthlete(bibId, raceStartedAt));
             }
 
-            var standingBikeActor = Context.System.ActorSelection($"/user/standing-bike");
-            Context.System.Scheduler.ScheduleTellOnce(_raceDuration.Add(TimeSpan.FromSeconds(1)), standingBikeActor, new Shutdown(), Self);
+            //var standingBikeActor = Context.System.ActorSelection($"/user/standing-bike");
+            //Context.System.Scheduler.ScheduleTellOnce(_raceDuration.Add(TimeSpan.FromSeconds(1)), standingBikeActor, new Shutdown(), Self);
 
 
             Context.System.Scheduler.ScheduleTellOnce(_raceDuration,

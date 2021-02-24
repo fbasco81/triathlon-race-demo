@@ -23,9 +23,6 @@ namespace Actors
         {
             switch(message)
             {
-                case RaceClosed ver:
-                    Handle(ver);
-                    break;
                 case AthleteRegistered ver:
                     Handle(ver);
                     break;
@@ -37,7 +34,11 @@ namespace Actors
                     break;
                 case AthleteExitRegistered vxr:
                     Handle(vxr);
-                    break;            
+                    break;
+                case RaceClosed ver:
+                    Handle(ver);
+                    break;
+
             }
         }
 

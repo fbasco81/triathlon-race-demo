@@ -181,14 +181,16 @@ namespace Actors
             var partialResult = new List<string>();
             while(maxGate > 0 && partialResult.Count() < msg.Top)
             {
+                var position = 1;
                 foreach (var result in _liveStanding.Where(x => x.Value.NrOfGates == maxGate)
                                             .OrderBy(x => x.Value.RacedTime)
                                             .Take(msg.Top))
                 {
-                    partialResult.Add($"Athlete {result.Key} is winning " +
+                    partialResult.Add($"Athlete {result.Key} is {(position == 1 ? "winning" : "following")} " +
                         $"in {result.Value.RacedTime.TotalMilliseconds} ms " +
                         $"after {result.Value.NrOfGates} gate(s) " +
                         $"passed at {result.Value.LastGatePassedAt.ToString("HH:mm:ss.ffffff")}");
+                    position++;
                 }
 
                 maxGate--;

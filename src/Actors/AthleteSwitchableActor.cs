@@ -15,7 +15,7 @@ namespace Actors
         string _bibId;
 
         private ActorSelection _standingActor;
-        private ActorSelection _bikeStandingActor;
+        //private ActorSelection _bikeStandingActor;
 
         private Dictionary<string, GateInOut> _gates = new Dictionary<string, GateInOut>()
         {
@@ -30,7 +30,7 @@ namespace Actors
         {            
             _bibId = bibId;
             _standingActor = Context.System.ActorSelection("/user/standing");
-            _bikeStandingActor = Context.System.ActorSelection("/user/standing-bike");
+            //_bikeStandingActor = Context.System.ActorSelection("/user/standing-bike");
 
             // initialize state
             WaitingToStart();
