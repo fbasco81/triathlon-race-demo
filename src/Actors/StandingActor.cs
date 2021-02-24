@@ -71,12 +71,14 @@ namespace Actors
                 case AthleteEntryRegistered ad:
                     Handle(ad);
                     break;
-                case AthleteCheckRegistered ad:
-                    Handle(ad);
-                    break;
-                case RaceClosed rc:
-                    Handle(rc);
-                    break;
+                // TODO: verify if required
+                //case AthleteCheckRegistered ad:
+                //    Handle(ad);
+                //    break;
+                // TODO: verify if required
+                //case RaceClosed rc:
+                //    Handle(rc);
+                //    break;
                 case PrintFinalStanding ss:
                     Handle(ss);
                     break;

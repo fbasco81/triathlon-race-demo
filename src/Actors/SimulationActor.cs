@@ -48,9 +48,6 @@ namespace Actors
         {
             switch (message)
             {
-                case TestSimulation ss:
-                    Handle(ss);
-                    break;
                 case StartSimulation ss:
                     Handle(ss);
                     break;
@@ -62,17 +59,7 @@ namespace Actors
                     break;
             }
         }
-
-        private void Handle(TestSimulation msg)
-        {
-            var raceControl = Context.System.ActorSelection($"/user/race-control");
-
-            for (int i = 0; i < msg.NumberOfAthletes; i++)
-            {
-                raceControl.Tell(new Test(i.ToString()));
-            }
-        }
-
+        
         /// <summary>
         /// Handle StartSimulation message.
         /// </summary>

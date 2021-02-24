@@ -181,7 +181,6 @@ namespace Actors
                         _standingActor.Tell(raceCompleted);
                     }
 
-                    //FluentConsole.Gray.Line($"Athlete #{_bibId} is shutting down.");
                     shutdown();
                 });
         }
