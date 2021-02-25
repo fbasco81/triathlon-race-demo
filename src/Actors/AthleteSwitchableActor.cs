@@ -15,7 +15,6 @@ namespace Actors
         string _bibId;
 
         private ActorSelection _standingActor;
-        private ActorSelection _notificationActor;
 
         private Dictionary<string, GateInOut> _gates = new Dictionary<string, GateInOut>()
         {
