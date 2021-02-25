@@ -8,14 +8,14 @@ namespace Actors
 {
 
     /// <summary>
-    /// Actor that represents a registered vehicle.
+    /// Actor that represents an athlete.
     /// </summary>
     public class AthleteSwitchableActor : ReceiveActor
     {
         string _bibId;
 
         private ActorSelection _standingActor;
-        //private ActorSelection _bikeStandingActor;
+        private ActorSelection _notificationActor;
 
         private Dictionary<string, GateInOut> _gates = new Dictionary<string, GateInOut>()
         {
@@ -30,7 +30,6 @@ namespace Actors
         {            
             _bibId = bibId;
             _standingActor = Context.System.ActorSelection("/user/standing");
-            //_bikeStandingActor = Context.System.ActorSelection("/user/standing-bike");
 
             // initialize state
             WaitingToStart();

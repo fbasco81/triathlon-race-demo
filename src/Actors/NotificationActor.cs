@@ -1,16 +1,23 @@
 ﻿using Akka.Actor;
 using Messages;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
+using System;
+using System.Text;
 
 namespace Actors
 {
+
+    
     /// <summary>
-    /// Actor that simulates bike standing .
+    /// Actor that simulates standing.
     /// </summary>
-    public class BikeStandingActor : UntypedActor
+    public class NotificationActor : UntypedActor
     {
-        private List<Result> _results = new List<Result>();
+        
+        public NotificationActor()
+        {
+        }
 
         /// <summary>
         /// Handle received message.
@@ -20,7 +27,7 @@ namespace Actors
         {
             switch (message)
             {
-                case BikeCompleted ss:
+                case SendPersonalResult ss:
                     Handle(ss);
                     break;
                 case Shutdown sd:
@@ -29,19 +36,16 @@ namespace Actors
             }
         }
 
-        /// <summary>
-        /// Handle BikeCompleted message.
-        /// </summary>
-        /// <param name="msg">The message to handle.</param>
-        private void Handle(BikeCompleted msg)
-        {
-            var result = new Result(msg.BibId, msg.Duration);
+       
 
-            _results.Add(result);
+        private void Handle(SendPersonalResult msg)
+        {
+            FluentConsole.Yellow.Line($"Congratulation athlete {msg.BibId}. You have ranked {msg.Position} with a duration of {msg.Duration}");
         }
 
         private void Handle(Shutdown msg)
         {
+            
             Context.Stop(Self);
         }
     }

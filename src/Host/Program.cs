@@ -61,7 +61,6 @@ namespace Host
 
 
                 var standingActor = system.ActorOf<StandingActor>("standing");
-                var bikeStandingActor = system.ActorOf<BikeStandingActor>("standing-bike");
 
                 //var simulationProps = Props.Create<SimulationActor>().WithRouter(new BroadcastPool(3));
                 var simulationProps = Props.Create<SimulationActor>(gates).WithRouter(new RoundRobinPool(3));

@@ -35,7 +35,7 @@ namespace Actors
         private int _entryRegisteredCounter;
         private IActorRef _athleteResultFileDumperActor;
         private string _fileRaceResultPath = "result-completed.txt";
-
+        private IActorRef _notificationActor;
         public StandingActor()
         {
             if (System.IO.File.Exists(_fileRaceResultPath))
@@ -46,6 +46,9 @@ namespace Actors
             var props = Props.Create<AthleteResultFileDumperActor>(_fileRaceResultPath);
             var actorName = "filewriter";
             _athleteResultFileDumperActor = Context.ActorOf(props, actorName);
+
+            _notificationActor = Context.ActorOf<NotificationActor>("notification");
+
         }
 
         /// <summary>
@@ -72,9 +75,9 @@ namespace Actors
                     Handle(ad);
                     break;
                 // TODO: verify if required
-                //case AthleteCheckRegistered ad:
-                //    Handle(ad);
-                //    break;
+                case AthleteCheckRegistered ad:
+                    Handle(ad);
+                    break;
                 // TODO: verify if required
                 //case RaceClosed rc:
                 //    Handle(rc);
@@ -139,10 +142,6 @@ namespace Actors
             }
         }
 
-        /// <summary>
-        /// Handle StartSimulation message.
-        /// </summary>
-        /// <param name="msg">The message to handle.</param>
         private void Handle(AthleteRaceCompleted msg)
         {
             var result = new Result(msg.BibId, msg.Duration);
@@ -152,6 +151,11 @@ namespace Actors
             }
 
             _results.Add(result);
+
+            _notificationActor.Tell(
+                new SendPersonalResult(msg.BibId, msg.Duration, _results.Count)
+                );
+
         }
 
         private void Handle(AthleteDisqualified msg)
@@ -202,15 +206,6 @@ namespace Actors
             }
             FluentConsole.DarkGreen.Line(sb.ToString());
         }
-
-        // TODO: verify if required
-        //private void Handle(AthleteRaceResult msg)
-        //{
-
-        //    _athleteResultFileDumperActor.Tell(msg);
-        //}
-
-
 
         private void Handle(Shutdown msg)
         {
