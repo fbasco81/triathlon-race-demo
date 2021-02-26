@@ -6,7 +6,6 @@ using Akka.Routing;
 using Messages;
 using Actors;
 using System.Collections.Generic;
-
 namespace Host
 {
     class Program
@@ -14,6 +13,8 @@ namespace Host
         static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.Unicode;
+            Hocon.HoconConfigurationFactory.Default();
+            
 
             var gates = new Dictionary<Gates, GateInfo>()
             {

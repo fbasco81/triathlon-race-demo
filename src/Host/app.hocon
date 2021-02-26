@@ -1,0 +1,24 @@
+﻿akka
+{
+    actor
+    {
+        provider = "Akka.Remote.RemoteActorRefProvider, Akka.Remote"
+        deployment
+        {
+            /standing/notification {
+                router = round-robin-pool
+                nr-of-instances = 1
+                remote = "akka.tcp://RaceSystem@localhost:4097"
+
+            }
+        }
+    }
+    remote
+    {
+        helios.tcp
+        {
+            port = 4096
+            hostname = localhost
+        }
+    }
+}
