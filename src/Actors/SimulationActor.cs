@@ -89,8 +89,9 @@ namespace Actors
                 raceControl.Tell(new AthleteRegistered(bibId));
             }
 
-            var standingActor = Context.System.ActorSelection($"/user/standing");
-            standingActor.Tell(new RaceStarted(raceStartedAt));
+            //var standingActor = Context.System.ActorSelection($"/user/standing");
+            //standingActor.Tell(new RaceStarted(raceStartedAt));
+            raceControl.Tell(new RaceStarted(raceStartedAt));
 
             for (int i = 0; i < msg.NumberOfAthletes; i++)
             {
@@ -98,20 +99,16 @@ namespace Actors
                 Self.Tell(new SimulatePassingAthlete(bibId, raceStartedAt));
             }
 
-            //var standingBikeActor = Context.System.ActorSelection($"/user/standing-bike");
-            //Context.System.Scheduler.ScheduleTellOnce(_raceDuration.Add(TimeSpan.FromSeconds(1)), standingBikeActor, new Shutdown(), Self);
-
-
             Context.System.Scheduler.ScheduleTellOnce(_raceDuration,
                 raceControl,
                 new RaceClosed(),
                 Self);
 
 
-            Context.System.Scheduler.ScheduleTellOnce(_raceDuration,
-                standingActor,
-                new PrintFinalStanding(10),
-                Self);
+            //Context.System.Scheduler.ScheduleTellOnce(_raceDuration,
+            //    standingActor,
+            //    new PrintFinalStanding(10),
+            //    Self);
 
         }
 

@@ -19,9 +19,6 @@ namespace Host
 
             var gates = new Dictionary<Gates, GateInfo>()
             {
-                //{ Gates.Swim.ToString(), new ExitDelayInSecond{Min = 8, Max = 16} },
-                //{ Gates.Bike.ToString(), new ExitDelayInSecond{Min = 25, Max = 40} },
-                //{ Gates.Run.ToString(), new ExitDelayInSecond{Min = 14, Max = 30} },
                 { Gates.Swim, new GateInfo(){
                     ExitDelay = new ExitDelayInSecond{Min = 1, Max = 2},
                     NrOfIntermediateChecks = 0 } },
@@ -42,11 +39,9 @@ namespace Host
                 foreach(var kv in gates)
                 {
                     var entrygate = "entrygate" + kv.Key.ToString().ToLower();
-                    //Console.WriteLine("Creating actor {0}", entrygate);
                     system.ActorOf<EntryGateActor>(entrygate);
 
                     var exitgate = "exitgate" + kv.Key.ToString().ToLower();
-                    //Console.WriteLine("Creating actor {0}", exitgate);
                     system.ActorOf<ExitGateActor>(exitgate);
 
                     for (int i = 0; i < kv.Value.NrOfIntermediateChecks; i++)

@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Messages;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,9 +11,10 @@ namespace Actors
     /// </summary>
     public class RaceControlActor : UntypedActor
     {
+        ActorSelection _standingActor;
         public RaceControlActor()
         {
-            // initialize state
+            _standingActor = Context.System.ActorSelection($"/user/standing");
         }
 
         /// <summary>
@@ -34,6 +36,9 @@ namespace Actors
                     break;
                 case AthleteExitRegistered vxr:
                     Handle(vxr);
+                    break;
+                case RaceStarted ver:
+                    Handle(ver);
                     break;
                 case RaceClosed ver:
                     Handle(ver);
@@ -75,10 +80,20 @@ namespace Actors
             standingActor.Tell(msg);
         }
 
+        private void Handle(RaceStarted msg)
+        {
+            _standingActor.Tell(msg);
+        }
+
         private void Handle(RaceClosed msg)
         {
             var athleteActor = Context.ActorSelection($"/user/race-control/*/*");
             athleteActor.Tell(new RaceClosed());
+
+            Context.System.Scheduler.ScheduleTellOnce(TimeSpan.FromSeconds(1),
+                _standingActor,
+                new PrintFinalStanding(10),
+                Self);
         }
     }
 }
