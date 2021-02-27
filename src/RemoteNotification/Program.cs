@@ -14,13 +14,8 @@ namespace RemoteNotification
 
             using (ActorSystem system = ActorSystem.Create("RaceSystem", akkaConfig))
             {
-
-
                 Console.Read();
             }
-
-            
-
         }
     }
 }

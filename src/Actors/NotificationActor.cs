@@ -40,7 +40,7 @@ namespace Actors
 
         private void Handle(SendPersonalResult msg)
         {
-            FluentConsole.Yellow.Line($"Congratulation athlete {msg.BibId}. You have ranked {msg.Position} with a duration of {msg.Duration}");
+            FluentConsole.Yellow.Line($"[{Self.Path.Uid}]: Congratulation athlete {msg.BibId}. You have ranked {msg.Position} with a duration of {msg.Duration}");
         }
 
         private void Handle(Shutdown msg)

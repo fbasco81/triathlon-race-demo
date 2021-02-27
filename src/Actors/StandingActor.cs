@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 using System.Text;
+using Akka.Routing;
 
 namespace Actors
 {
@@ -47,7 +48,9 @@ namespace Actors
             var actorName = "filewriter";
             _athleteResultFileDumperActor = Context.ActorOf(props, actorName);
 
-            _notificationActor = Context.ActorOf<NotificationActor>("notification");
+            var notificationProps = Props.Create<NotificationActor>()
+                .WithRouter(new RoundRobinPool(2));
+            _notificationActor = Context.ActorOf(notificationProps, "notification");
 
         }
 

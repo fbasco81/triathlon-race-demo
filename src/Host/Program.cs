@@ -33,15 +33,11 @@ namespace Host
                     NrOfIntermediateChecks = 1 } },
             };
 
-            //var config = ConfigurationFactory.ParseString(File.ReadAllText("akkaconfig.hocon"));
-
             using (ActorSystem system = ActorSystem.Create("RaceSystem", akkaConfig))
             {
-                //var roadInfo = new RoadInfo("A2", 10, 100, 5);
-                var raceControlProps = Props.Create<RaceControlActor>()
+                 var raceControlProps = Props.Create<RaceControlActor>()
                     .WithRouter(new RoundRobinPool(3));
-                    //.WithRouter(new BroadcastPool(3));
-                var raceControlActor = system.ActorOf(raceControlProps, "race-control");
+                 var raceControlActor = system.ActorOf(raceControlProps, "race-control");
 
                 foreach(var kv in gates)
                 {
