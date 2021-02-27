@@ -13,8 +13,9 @@ namespace Host
         static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.Unicode;
-            Hocon.HoconConfigurationFactory.Default();
-            
+            var hoConfig = Hocon.HoconConfigurationFactory.Default();
+
+            var akkaConfig = Akka.Configuration.ConfigurationFactory.ParseString(hoConfig.ToString());
 
             var gates = new Dictionary<Gates, GateInfo>()
             {
@@ -34,7 +35,7 @@ namespace Host
 
             //var config = ConfigurationFactory.ParseString(File.ReadAllText("akkaconfig.hocon"));
 
-            using (ActorSystem system = ActorSystem.Create("RaceSystem"))
+            using (ActorSystem system = ActorSystem.Create("RaceSystem", akkaConfig))
             {
                 //var roadInfo = new RoadInfo("A2", 10, 100, 5);
                 var raceControlProps = Props.Create<RaceControlActor>()

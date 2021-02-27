@@ -16,4 +16,10 @@
     <ProjectReference Include="..\Messages\Messages.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="app.hocon">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -20,5 +20,11 @@
    <ItemGroup>
      <Folder Include="diagram\" />
    </ItemGroup>
+  
+   <ItemGroup>
+     <None Update="app.hocon">
+       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+     </None>
+   </ItemGroup>
 
 </Project>

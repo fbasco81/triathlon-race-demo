@@ -8,14 +8,18 @@ namespace RemoteNotification
         static void Main(string[] args)
         {
             Console.WriteLine("Waiting for notifications");
-            Hocon.HoconConfigurationFactory.Default();
+            var hoConfig = Hocon.HoconConfigurationFactory.Default();
 
-            using (ActorSystem system = ActorSystem.Create("RaceSystem"))
+            var akkaConfig = Akka.Configuration.ConfigurationFactory.ParseString(hoConfig.ToString());
+
+            using (ActorSystem system = ActorSystem.Create("RaceSystem", akkaConfig))
             {
 
+
+                Console.Read();
             }
 
-            Console.Read();
+            
 
         }
     }
