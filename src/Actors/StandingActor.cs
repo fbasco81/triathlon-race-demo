@@ -50,6 +50,7 @@ namespace Actors
 
             var notificationProps = Props.Create<NotificationActor>()
                 .WithRouter(new RoundRobinPool(2));
+                
             _notificationActor = Context.ActorOf(notificationProps, "notification");
 
         }
@@ -77,7 +78,6 @@ namespace Actors
                 case AthleteEntryRegistered ad:
                     Handle(ad);
                     break;
-                // TODO: verify if required
                 case AthleteCheckRegistered ad:
                     Handle(ad);
                     break;
@@ -88,7 +88,7 @@ namespace Actors
                 case PrintFinalStanding ss:
                     Handle(ss);
                     break;
-                // TODO: verify if required
+                
 
                 //case AthleteRaceResult ss:
                 //    Handle(ss);
