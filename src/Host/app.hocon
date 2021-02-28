@@ -2,16 +2,19 @@
 {
     actor
     {
-     #   provider = "Akka.Remote.RemoteActorRefProvider, Akka.Remote"
-     #   deployment
-     #   {
-     #       /standing/notification {
-     #           router = round-robin-pool
-     #           nr-of-instances = 2
-     #           remote = "akka.tcp://RaceSystem@localhost:4097"
+        provider = "Akka.Remote.RemoteActorRefProvider, Akka.Remote"
+        deployment
+        {
+            /standing/notification {
+                remote = "akka.tcp://RaceSystem@localhost:4097"
+            }
 
-    #      }
-    #    }
+            /standing/notification/phoneNotification {
+                router = round-robin-pool
+                nr-of-instances = 2
+                remote = "akka.tcp://RaceSystem@localhost:4097"
+            }
+        }
     }
     remote
     {

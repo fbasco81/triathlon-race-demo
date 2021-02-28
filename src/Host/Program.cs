@@ -52,21 +52,7 @@ namespace Host
                     }
                 }
 
-                var standingActorProps = Props.Create<StandingActor>()
-                    .WithSupervisorStrategy(new OneForOneStrategy(
-                        maxNrOfRetries: 3,
-                        withinTimeRange: TimeSpan.FromSeconds(10),
-                        ex => {
-                            if (ex is UnauthorizedAccessException)
-                            {
-                                return Directive.Stop;
-                            }
-                            else if (ex is TimeoutException)
-                            {
-                                return Directive.Restart;
-                            }
-                            return OneForOneStrategy.DefaultDecider.Decide(ex);
-                        }));
+                var standingActorProps = Props.Create<StandingActor>();
                 var standingActor = system.ActorOf(standingActorProps, "standing");
 
 

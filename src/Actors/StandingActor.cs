@@ -49,9 +49,24 @@ namespace Actors
             _athleteResultFileDumperActor = Context.ActorOf(props, actorName);
 
             var notificationProps = Props.Create<NotificationActor>()
-                .WithRouter(new RoundRobinPool(2));
-                
+                .WithSupervisorStrategy(new OneForOneStrategy(
+                        maxNrOfRetries: 5,
+                        withinTimeRange: TimeSpan.FromSeconds(30),
+                        ex => {
+                            if (ex is UnauthorizedAccessException)
+                            {
+                                return Directive.Stop;
+                            }
+                            else if (ex is TimeoutException)
+                            {
+                                return Directive.Restart;
+                            }
+                            return OneForOneStrategy.DefaultDecider.Decide(ex);
+                        }));
+            //.WithRouter(new RoundRobinPool(2));
+
             _notificationActor = Context.ActorOf(notificationProps, "notification");
+
 
         }
 
@@ -154,11 +169,6 @@ namespace Actors
             }
 
             _results.Add(result);
-
-            _notificationActor.Tell(
-                new SendPersonalResult(msg.BibId, msg.Duration, _results.Count)
-                );
-
         }
 
         private void Handle(AthleteDisqualified msg)
@@ -176,6 +186,8 @@ namespace Actors
                 sb.AppendLine($"Athlete {result.BibId} completed in {result.Duration.TotalMilliseconds} ms");
             }
             FluentConsole.DarkGreen.Line(sb.ToString());
+
+            _notificationActor.Tell(new SendNotification(_results));
         }
 
         private void Handle(PrintLiveStanding msg)

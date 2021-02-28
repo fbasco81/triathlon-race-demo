@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 using System.Text;
+using Akka.Routing;
 
 namespace Actors
 {
@@ -14,20 +15,21 @@ namespace Actors
     /// </summary>
     public class NotificationActor : UntypedActor
     {
-        
+        IActorRef _phoneNotificationActor;
         public NotificationActor()
         {
+            var phoneNotificationProps = Props.Create<PhoneNotificationActor>()
+                .WithRouter(new RoundRobinPool(1));
+
+            _phoneNotificationActor = Context.ActorOf(phoneNotificationProps, "phoneNotification");
         }
 
-        /// <summary>
-        /// Handle received message.
-        /// </summary>
-        /// <param name="message">The message to handle.</param>
+       
         protected override void OnReceive(object message)
         {
             switch (message)
             {
-                case SendPersonalResult ss:
+                case SendNotification ss:
                     Handle(ss);
                     break;
                 case Shutdown sd:
@@ -36,25 +38,16 @@ namespace Actors
             }
         }
 
-        protected override void PreRestart(Exception reason, object message)
+        private void Handle(SendNotification msg)
         {
-            if (reason is TimeoutException)
+            var position = 1;
+            foreach (var result in msg.Results.OrderBy(x => x.Duration))
             {
-                Self.Tell(message);
+                _phoneNotificationActor.Tell(
+                    new SendPhoneNotification(result.BibId, result.Duration, position)
+                );
+                position++;
             }
-            base.PreRestart(reason, message);
-        }
-
-        private void Handle(SendPersonalResult msg)
-        {
-            var rnd = new Random();
-            var n = rnd.Next(1, 5);
-            if (n == 2)
-            {
-                FluentConsole.Red.Line($"[{Self.Path.Uid}]: Athlete {msg.BibId} is not available now");
-                throw new TimeoutException($"Athlete {msg.BibId} has his phone unreachable");
-            }
-            FluentConsole.Yellow.Line($"[{Self.Path.Uid}]: Congratulation athlete {msg.BibId}. You have ranked {msg.Position} with a duration of {msg.Duration}");
         }
 
         private void Handle(Shutdown msg)

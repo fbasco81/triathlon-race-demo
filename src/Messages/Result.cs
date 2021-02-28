@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Actors
+namespace Messages
 {
-    internal class Result
+    public class Result
     {
         public string BibId { get; private set; }
 
