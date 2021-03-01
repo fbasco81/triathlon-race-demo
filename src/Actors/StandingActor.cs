@@ -63,7 +63,7 @@ namespace Actors
                             }
                             return OneForOneStrategy.DefaultDecider.Decide(ex);
                         }));
-            //.WithRouter(new RoundRobinPool(2));
+            //.WithRouter(new RoundRobinPool(3));
 
             _notificationActor = Context.ActorOf(notificationProps, "notification");
 

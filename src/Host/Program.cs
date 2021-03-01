@@ -15,7 +15,8 @@ namespace Host
             Console.OutputEncoding = System.Text.Encoding.Unicode;
             var hoConfig = Hocon.HoconConfigurationFactory.Default();
 
-            var akkaConfig = Akka.Configuration.ConfigurationFactory.ParseString(hoConfig.ToString());
+            //var akkaConfig = Akka.Configuration.ConfigurationFactory.ParseString(hoConfig.ToString());
+            var akkaConfig = Akka.Configuration.ConfigurationFactory.Default();
 
             var gates = new Dictionary<Gates, GateInfo>()
             {

@@ -17,6 +17,7 @@ namespace Actors
         public IStash Stash { get; set; }
         public PhoneNotificationActor()
         {
+     
         }
 
         /// <summary>
