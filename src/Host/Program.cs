@@ -48,7 +48,6 @@ namespace Host
                     for (int i = 0; i < kv.Value.NrOfIntermediateChecks; i++)
                     {
                         var n = $"intermediategate-{kv.Key.ToString().ToLower()}-{i + 1}";
-                       // Console.WriteLine("Creating actor {0}", n);
                         system.ActorOf<IntermediateGateActor>(n);
                     }
                 }
@@ -56,8 +55,6 @@ namespace Host
                 var standingActorProps = Props.Create<StandingActor>();
                 var standingActor = system.ActorOf(standingActorProps, "standing");
 
-
-                //var simulationProps = Props.Create<SimulationActor>().WithRouter(new BroadcastPool(3));
                 var simulationProps = Props.Create<SimulationActor>(gates).WithRouter(new RoundRobinPool(3));
                 var simulationActor = system.ActorOf(simulationProps);
 
@@ -65,8 +62,7 @@ namespace Host
                 Console.ReadKey(true);
 
                 simulationActor.Tell(new StartSimulation(100));
-                //simulationActor.Tell(new TestSimulation(18));
-
+                
                 Console.ReadKey(true);
                 system.Terminate();
 

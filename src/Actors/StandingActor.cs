@@ -9,20 +9,6 @@ using Akka.Routing;
 namespace Actors
 {
 
-    public class LiveResult
-    {
-        public TimeSpan RacedTime { get; private set; }
-        public int NrOfGates { get; private set; }
-        public DateTime LastGatePassedAt { get; private set; }
-
-        public LiveResult(TimeSpan racedTime, int nrOfGates, DateTime lastGatePassedAt)
-        {
-            RacedTime = racedTime;
-            NrOfGates = nrOfGates;
-            LastGatePassedAt = lastGatePassedAt;
-        }
-    }
-
     /// <summary>
     /// Actor that simulates standing.
     /// </summary>
@@ -36,7 +22,7 @@ namespace Actors
         private int _entryRegisteredCounter;
         private IActorRef _athleteResultFileDumperActor;
         private string _fileRaceResultPath = "result-completed.txt";
-        private IActorRef _notificationActor;
+        // private IActorRef _notificationActor;
         public StandingActor()
         {
             if (System.IO.File.Exists(_fileRaceResultPath))
@@ -48,24 +34,24 @@ namespace Actors
             var actorName = "filewriter";
             _athleteResultFileDumperActor = Context.ActorOf(props, actorName);
 
-            var notificationProps = Props.Create<NotificationActor>()
-                .WithSupervisorStrategy(new OneForOneStrategy(
-                        maxNrOfRetries: 5,
-                        withinTimeRange: TimeSpan.FromSeconds(30),
-                        ex => {
-                            if (ex is UnauthorizedAccessException)
-                            {
-                                return Directive.Stop;
-                            }
-                            else if (ex is TimeoutException)
-                            {
-                                return Directive.Restart;
-                            }
-                            return OneForOneStrategy.DefaultDecider.Decide(ex);
-                        }));
+            //var notificationProps = Props.Create<NotificationActor>()
+            //    .WithSupervisorStrategy(new OneForOneStrategy(
+            //            maxNrOfRetries: 5,
+            //            withinTimeRange: TimeSpan.FromSeconds(30),
+            //            ex => {
+            //                if (ex is UnauthorizedAccessException)
+            //                {
+            //                    return Directive.Stop;
+            //                }
+            //                else if (ex is TimeoutException)
+            //                {
+            //                    return Directive.Restart;
+            //                }
+            //                return OneForOneStrategy.DefaultDecider.Decide(ex);
+            //            }));
             //.WithRouter(new RoundRobinPool(3));
 
-            _notificationActor = Context.ActorOf(notificationProps, "notification");
+            //_notificationActor = Context.ActorOf(notificationProps, "notification");
 
 
         }
@@ -187,7 +173,7 @@ namespace Actors
             }
             FluentConsole.DarkGreen.Line(sb.ToString());
 
-            _notificationActor.Tell(new SendNotification(_results));
+            //_notificationActor.Tell(new SendNotification(_results));
         }
 
         private void Handle(PrintLiveStanding msg)
@@ -198,9 +184,10 @@ namespace Actors
             sb.AppendLine("Live standings at " + DateTime.Now.ToString("HH:mm:ss.ffffff"));
             var maxGate = _liveStanding.Max(x => x.Value.NrOfGates);
             var partialResult = new List<string>();
-            while(maxGate > 0 && partialResult.Count() < msg.Top)
+            var position = 1;
+
+            while (maxGate > 0 && partialResult.Count() < msg.Top)
             {
-                var position = 1;
                 foreach (var result in _liveStanding.Where(x => x.Value.NrOfGates == maxGate)
                                             .OrderBy(x => x.Value.RacedTime)
                                             .Take(msg.Top))

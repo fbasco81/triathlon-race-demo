@@ -30,7 +30,7 @@ namespace Actors
         private string _randomWinner;
         private string _randomDisqualified;
         private Random _rnd;
-        private TimeSpan _raceDuration = TimeSpan.FromSeconds(20);
+        private TimeSpan _raceDuration = TimeSpan.FromSeconds(12);
 
         private int _minTransitionDelayInS = 1;
         private Dictionary<Gates, GateInfo> _exitDelay;
