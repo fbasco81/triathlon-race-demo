@@ -22,7 +22,9 @@ namespace Actors
         private int _entryRegisteredCounter;
         private IActorRef _athleteResultFileDumperActor;
         private string _fileRaceResultPath = "result-completed.txt";
-        // private IActorRef _notificationActor;
+
+        // DEMO: All steps
+        private IActorRef _notificationActor;
         public StandingActor()
         {
             if (System.IO.File.Exists(_fileRaceResultPath))
@@ -34,26 +36,31 @@ namespace Actors
             var actorName = "filewriter";
             _athleteResultFileDumperActor = Context.ActorOf(props, actorName);
 
-            //var notificationProps = Props.Create<NotificationActor>()
-            //    .WithSupervisorStrategy(new OneForOneStrategy(
-            //            maxNrOfRetries: 5,
-            //            withinTimeRange: TimeSpan.FromSeconds(30),
-            //            ex => {
-            //                if (ex is UnauthorizedAccessException)
-            //                {
-            //                    return Directive.Stop;
-            //                }
-            //                else if (ex is TimeoutException)
-            //                {
-            //                    return Directive.Restart;
-            //                }
-            //                return OneForOneStrategy.DefaultDecider.Decide(ex);
-            //            }));
-            //.WithRouter(new RoundRobinPool(3));
+            // DEMO: STEP 1
+            //var notificationProps = Props.Create<NotificationActor>();
+            
+            // DEMO: STEP 4 - Supervisor
+            var notificationProps = Props.Create<NotificationActor>()
+                .WithSupervisorStrategy(new OneForOneStrategy(
+                        maxNrOfRetries: 5,
+                        withinTimeRange: TimeSpan.FromSeconds(30),
+                        ex =>
+                        {
+                            if (ex is UnauthorizedAccessException)
+                            {
+                                return Directive.Stop;
+                            }
+                            else if (ex is TimeoutException)
+                            {
+                                return Directive.Restart;
+                            }
+                            return OneForOneStrategy.DefaultDecider.Decide(ex);
+                        })).WithRouter(new RoundRobinPool(1)); ;
+            
+            // ------
+            _notificationActor = Context.ActorOf(notificationProps, "notification");
 
-            //_notificationActor = Context.ActorOf(notificationProps, "notification");
-
-
+            //
         }
 
         /// <summary>
@@ -173,7 +180,8 @@ namespace Actors
             }
             FluentConsole.DarkGreen.Line(sb.ToString());
 
-            //_notificationActor.Tell(new SendNotification(_results));
+            // DEMO: ALL STEPS
+            _notificationActor.Tell(new SendNotification(_results));
         }
 
         private void Handle(PrintLiveStanding msg)

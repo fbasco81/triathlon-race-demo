@@ -38,28 +38,7 @@ namespace Actors
             }
         }
 
-        //[System.Diagnostics.DebuggerHidden]
-        //public override void AroundPreRestart(Exception cause, object message)
-        //{
-
-        //}
-
-        //public override void AroundPostRestart(Exception cause, object message)
-        //{
-        //    if (cause is TimeoutException)
-        //    {
-        //        if (message is SendPhoneNotification sendResult)
-        //        {
-        //            //Context.System.Scheduler.ScheduleTellOnce(TimeSpan.FromSeconds(3), Self,
-        //            //    new SendPhoneNotification(sendResult.BibId, sendResult.Duration, sendResult.Position),
-        //            //    Sender);
-        //            Self.Tell(message);
-
-        //        }
-        //    }
-        //    base.AroundPostRestart(cause, message);
-        //}
-
+        // DEMO: STEP 4 - Supervisor
         protected override void PostRestart(Exception reason)
         {
             if (reason is TimeoutException)
@@ -69,23 +48,23 @@ namespace Actors
             base.PostRestart(reason);
         }
 
+        // DEMO: STEP 4 - Supervisor
         protected override void PreRestart(Exception reason, object message)
         {
             if (reason is TimeoutException)
             {
                 Stash.Stash();
-                //if (message is SendPhoneNotification sendResult)
-                //{
-                //    //Context.System.Scheduler.ScheduleTellOnce(TimeSpan.FromSeconds(3), Self,
-                //    //    new SendPhoneNotification(sendResult.BibId, sendResult.Duration, sendResult.Position),
-                //    //    Sender);
-                //    Self.Tell(message);
-
-                //}
             }
             base.PreRestart(reason, message);
         }
 
+        // DEMO: STEP 1 - Simple notification
+        //private void Handle(SendPhoneNotification msg)
+        //{
+        //    FluentConsole.Yellow.Line($"[{Self.Path.Uid}]: Congratulation athlete {msg.BibId}. You have ranked {msg.Position} with a duration of {msg.Duration}");
+        //}
+
+        // DEMO: STEP 3 - Random exception
         [System.Diagnostics.DebuggerHidden]
         private void Handle(SendPhoneNotification msg)
         {

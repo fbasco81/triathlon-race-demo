@@ -48,6 +48,7 @@ namespace Actors
                 );
                 position++;
             }
+            //Self.Tell(new Shutdown());
         }
 
         private void Handle(Shutdown msg)
