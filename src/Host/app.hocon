@@ -1,5 +1,7 @@
 ﻿akka
 {
+    loglevel = OFF
+    
     actor
     {
         provider = "Akka.Remote.RemoteActorRefProvider, Akka.Remote"
