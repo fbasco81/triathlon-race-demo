@@ -36,27 +36,9 @@ namespace Actors
             var actorName = "filewriter";
             _athleteResultFileDumperActor = Context.ActorOf(props, actorName);
 
-            // DEMO: STEP 1
-            //var notificationProps = Props.Create<NotificationActor>();
-            
-            // DEMO: STEP 4 - Supervisor
-            var notificationProps = Props.Create<NotificationActor>()
-                .WithSupervisorStrategy(new OneForOneStrategy(
-                        maxNrOfRetries: 5,
-                        withinTimeRange: TimeSpan.FromSeconds(30),
-                        ex =>
-                        {
-                            if (ex is UnauthorizedAccessException)
-                            {
-                                return Directive.Stop;
-                            }
-                            else if (ex is TimeoutException)
-                            {
-                                return Directive.Restart;
-                            }
-                            return OneForOneStrategy.DefaultDecider.Decide(ex);
-                        })).WithRouter(new RoundRobinPool(1)); ;
-            
+            // DEMO: All
+            var notificationProps = Props.Create<NotificationActor>();
+
             // ------
             _notificationActor = Context.ActorOf(notificationProps, "notification");
 

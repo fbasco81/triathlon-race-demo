@@ -9,7 +9,7 @@ using Akka.Routing;
 namespace Actors
 {
 
-    
+
     /// <summary>
     /// Actor that simulates standing.
     /// </summary>
@@ -19,12 +19,30 @@ namespace Actors
         public NotificationActor()
         {
             var phoneNotificationProps = Props.Create<PhoneNotificationActor>()
-                .WithRouter(new RoundRobinPool(1));
+                    .WithRouter(FromConfig.Instance);
 
             _phoneNotificationActor = Context.ActorOf(phoneNotificationProps, "phoneNotification");
         }
 
-       
+        protected override SupervisorStrategy SupervisorStrategy()
+        {
+            return new OneForOneStrategy(
+                maxNrOfRetries: 2,
+                withinTimeRange: TimeSpan.FromSeconds(30),
+                ex =>
+                {
+                    if (ex is UnauthorizedAccessException)
+                    {
+                        return Directive.Stop;
+                    }
+                    else if (ex is TimeoutException)
+                    {
+                        return Directive.Restart;
+                    }
+                    return OneForOneStrategy.DefaultDecider.Decide(ex);
+                });
+        }
+
         protected override void OnReceive(object message)
         {
             switch (message)
@@ -53,7 +71,7 @@ namespace Actors
 
         private void Handle(Shutdown msg)
         {
-            
+
             Context.Stop(Self);
         }
     }

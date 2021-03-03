@@ -78,6 +78,13 @@ namespace Actors
             FluentConsole.Yellow.Line($"[{Self.Path.Uid}]: Congratulation athlete {msg.BibId}. You have ranked {msg.Position} with a duration of {msg.Duration}");
         }
 
+        //[System.Diagnostics.DebuggerHidden]
+        //private void Handle(SendPhoneNotification msg)
+        //{
+        //        FluentConsole.Red.Line($"[{Self.Path.Uid}]: Athlete {msg.BibId} is not available now");
+        //        throw new TimeoutException($"Athlete {msg.BibId} has his phone unreachable");
+        //}
+
         private void Handle(Shutdown msg)
         {
 

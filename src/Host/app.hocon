@@ -13,7 +13,7 @@
 
             /standing/notification/phoneNotification {
                 router = round-robin-pool
-                nr-of-instances = 1
+                nr-of-instances = 4
                 remote = "akka.tcp://RaceSystem@localhost:4097"
             }
         }
