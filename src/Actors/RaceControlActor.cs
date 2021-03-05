@@ -90,11 +90,7 @@ namespace Actors
             var athleteActor = Context.ActorSelection($"/user/race-control/*/*");
             athleteActor.Tell(new RaceClosed());
 
-            // TODO verify if I can use _standingActor.Tell
-            Context.System.Scheduler.ScheduleTellOnce(TimeSpan.FromSeconds(1),
-                _standingActor,
-                new PrintFinalStanding(10),
-                Self);
+            _standingActor.Tell(new PrintFinalStanding(10));
         }
     }
 }
