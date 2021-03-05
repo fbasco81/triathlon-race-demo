@@ -43,25 +43,11 @@ namespace Actors
         {
             switch (message)
             {
-                //case AthleteRegistered ver:
-                //    Handle(ver);
-                //    break;
                 case SendNotification ss:
                     Handle(ss);
                     break;
-                //case Shutdown sd:
-                //    Handle(sd);
-                //    break;
             }
         }
-
-        //private void Handle(AthleteRegistered msg)
-        //{
-         //   var propsPhoneNotificationActor = Props.Create<PhoneNotificationActor>();
-         //   var phoneNotificationActor = Context.ActorOf(propsPhoneNotificationActor, $"phoneNotification-{msg.BibId}");
-        //}
-
-        
 
         private void Handle(SendNotification msg)
         {
@@ -69,8 +55,6 @@ namespace Actors
 
             foreach (var result in msg.Results.OrderBy(x => x.Duration))
             {
-                //var phoneNotificationActor = Context.ActorSelection($"/user/notification/phoneNotification-{result.BibId}");
-
                 var propsPhoneNotificationActor = Props.Create<PhoneNotificationActor>();
                 var phoneNotificationActor = Context.ActorOf(propsPhoneNotificationActor, $"phoneNotification-{result.BibId}");
 
@@ -79,13 +63,6 @@ namespace Actors
                 );
                 position++;
             }
-            //Self.Tell(new Shutdown());
         }
-
-        //private void Handle(Shutdown msg)
-        //{
-
-        //    Context.Stop(Self);
-        //}
     }
 }
