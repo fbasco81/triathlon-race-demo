@@ -20,25 +20,6 @@ namespace Actors
             
         }
 
-        protected override SupervisorStrategy SupervisorStrategy()
-        {
-            return new OneForOneStrategy(
-                maxNrOfRetries: 2,
-                withinTimeRange: TimeSpan.FromSeconds(30),
-                ex =>
-                {
-                    if (ex is UnauthorizedAccessException)
-                    {
-                        return Directive.Stop;
-                    }
-                    else if (ex is TimeoutException)
-                    {
-                        return Directive.Restart;
-                    }
-                    return OneForOneStrategy.DefaultDecider.Decide(ex);
-                });
-        }
-
         protected override void OnReceive(object message)
         {
             switch (message)
