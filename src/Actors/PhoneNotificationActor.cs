@@ -31,9 +31,7 @@ namespace Actors
                 case SendPhoneNotification ss:
                     Handle(ss);
                     break;
-                case Shutdown sd:
-                    Handle(sd);
-                    break;
+                
             }
         }
 
@@ -47,12 +45,6 @@ namespace Actors
         private void Handle(SendPhoneNotification msg)
         {
             FluentConsole.Yellow.Line($"[{Self.Path.Uid}]: Congratulation athlete {msg.BibId}. You have ranked {msg.Position} with a duration of {msg.Duration}");
-        }
-        
-        private void Handle(Shutdown msg)
-        {
-
-            Context.Stop(Self);
         }
     }
 }
