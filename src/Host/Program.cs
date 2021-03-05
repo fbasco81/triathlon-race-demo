@@ -13,9 +13,8 @@ namespace Host
         static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.Unicode;
-            var hoConfig = Hocon.HoconConfigurationFactory.Default();
-
-            var akkaConfig = Akka.Configuration.ConfigurationFactory.ParseString(hoConfig.ToString());
+            
+            var akkaConfig = Akka.Configuration.ConfigurationFactory.Default();
                         
             var gates = new Dictionary<Gates, GateInfo>()
             {
@@ -54,7 +53,7 @@ namespace Host
                 var standingActorProps = Props.Create<StandingActor>();
                 var standingActor = system.ActorOf(standingActorProps, "standing");
 
-                var notificationProps = Props.Create<NotificationActor>().WithRouter(FromConfig.Instance);
+                var notificationProps = Props.Create<NotificationActor>();
                 var notificationActor = system.ActorOf(notificationProps, "notification");
 
                 var simulationProps = Props.Create<SimulationActor>(gates).WithRouter(new RoundRobinPool(3));
