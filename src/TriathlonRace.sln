@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actors", "Actors\Actors.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messages", "Messages\Messages.csproj", "{52A02E09-FB84-473C-B478-6BE4CABD4942}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteNotification", "RemoteNotification\RemoteNotification.csproj", "{6EA4CA0F-372E-4A1E-A93B-E2D5819CE50C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{52A02E09-FB84-473C-B478-6BE4CABD4942}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52A02E09-FB84-473C-B478-6BE4CABD4942}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52A02E09-FB84-473C-B478-6BE4CABD4942}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6EA4CA0F-372E-4A1E-A93B-E2D5819CE50C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6EA4CA0F-372E-4A1E-A93B-E2D5819CE50C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6EA4CA0F-372E-4A1E-A93B-E2D5819CE50C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6EA4CA0F-372E-4A1E-A93B-E2D5819CE50C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -8,12 +8,10 @@
         deployment
         {
             /notification {
-                remote = "akka.tcp://RaceSystem@localhost:4097"
+                router = round-robin-pool
+                nr-of-instances = 4
             }
 
-            /notification/phoneNotification {
-                remote = "akka.tcp://RaceSystem@localhost:4097"
-            }
         }
     }
     remote
