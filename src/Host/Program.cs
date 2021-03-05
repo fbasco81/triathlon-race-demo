@@ -15,12 +15,8 @@ namespace Host
             Console.OutputEncoding = System.Text.Encoding.Unicode;
             var hoConfig = Hocon.HoconConfigurationFactory.Default();
 
-            // DEMO: STEP 2 - Remote
             var akkaConfig = Akka.Configuration.ConfigurationFactory.ParseString(hoConfig.ToString());
-
-            // DEMO: STEP 1
-            //var akkaConfig = Akka.Configuration.ConfigurationFactory.Default();
-
+                        
             var gates = new Dictionary<Gates, GateInfo>()
             {
                 { Gates.Swim, new GateInfo(){
@@ -57,6 +53,9 @@ namespace Host
 
                 var standingActorProps = Props.Create<StandingActor>();
                 var standingActor = system.ActorOf(standingActorProps, "standing");
+
+                var notificationProps = Props.Create<NotificationActor>().WithRouter(FromConfig.Instance);
+                var notificationActor = system.ActorOf(notificationProps, "notification");
 
                 var simulationProps = Props.Create<SimulationActor>(gates).WithRouter(new RoundRobinPool(3));
                 var simulationActor = system.ActorOf(simulationProps);

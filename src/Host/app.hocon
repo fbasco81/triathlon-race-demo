@@ -7,13 +7,11 @@
         provider = "Akka.Remote.RemoteActorRefProvider, Akka.Remote"
         deployment
         {
-            /standing/notification {
+            /notification {
                 remote = "akka.tcp://RaceSystem@localhost:4097"
             }
 
-            /standing/notification/phoneNotification {
-                router = round-robin-pool
-                nr-of-instances = 4
+            /notification/phoneNotification {
                 remote = "akka.tcp://RaceSystem@localhost:4097"
             }
         }

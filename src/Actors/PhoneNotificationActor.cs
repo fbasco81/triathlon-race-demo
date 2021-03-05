@@ -12,9 +12,8 @@ namespace Actors
     /// <summary>
     /// Actor that simulates standing.
     /// </summary>
-    public class PhoneNotificationActor : UntypedActor, IWithUnboundedStash
+    public class PhoneNotificationActor : UntypedActor
     {
-        public IStash Stash { get; set; }
         public PhoneNotificationActor()
         {
      
@@ -38,33 +37,12 @@ namespace Actors
             }
         }
 
-        // DEMO: STEP 4 - Supervisor
-        protected override void PostRestart(Exception reason)
-        {
-            if (reason is TimeoutException)
-            {
-                Stash.UnstashAll();
-            }
-            base.PostRestart(reason);
-        }
-
-        // DEMO: STEP 4 - Supervisor
         protected override void PreRestart(Exception reason, object message)
         {
-            if (reason is TimeoutException)
-            {
-                Stash.Stash();
-            }
-            base.PreRestart(reason, message);
+            // put message back in mailbox for re-processing after restart
+            Self.Tell(message);
         }
 
-        // DEMO: STEP 1 - Simple notification
-        //private void Handle(SendPhoneNotification msg)
-        //{
-        //    FluentConsole.Yellow.Line($"[{Self.Path.Uid}]: Congratulation athlete {msg.BibId}. You have ranked {msg.Position} with a duration of {msg.Duration}");
-        //}
-
-        // DEMO: STEP 3 - Random exception
         [System.Diagnostics.DebuggerHidden]
         private void Handle(SendPhoneNotification msg)
         {
@@ -77,14 +55,7 @@ namespace Actors
             }
             FluentConsole.Yellow.Line($"[{Self.Path.Uid}]: Congratulation athlete {msg.BibId}. You have ranked {msg.Position} with a duration of {msg.Duration}");
         }
-
-        //[System.Diagnostics.DebuggerHidden]
-        //private void Handle(SendPhoneNotification msg)
-        //{
-        //        FluentConsole.Red.Line($"[{Self.Path.Uid}]: Athlete {msg.BibId} is not available now");
-        //        throw new TimeoutException($"Athlete {msg.BibId} has his phone unreachable");
-        //}
-
+        
         private void Handle(Shutdown msg)
         {
 

@@ -15,13 +15,9 @@ namespace Actors
     /// </summary>
     public class NotificationActor : UntypedActor
     {
-        IActorRef _phoneNotificationActor;
         public NotificationActor()
         {
-            var phoneNotificationProps = Props.Create<PhoneNotificationActor>()
-                    .WithRouter(FromConfig.Instance);
-
-            _phoneNotificationActor = Context.ActorOf(phoneNotificationProps, "phoneNotification");
+            
         }
 
         protected override SupervisorStrategy SupervisorStrategy()
@@ -47,21 +43,38 @@ namespace Actors
         {
             switch (message)
             {
+                //case AthleteRegistered ver:
+                //    Handle(ver);
+                //    break;
                 case SendNotification ss:
                     Handle(ss);
                     break;
-                case Shutdown sd:
-                    Handle(sd);
-                    break;
+                //case Shutdown sd:
+                //    Handle(sd);
+                //    break;
             }
         }
+
+        //private void Handle(AthleteRegistered msg)
+        //{
+         //   var propsPhoneNotificationActor = Props.Create<PhoneNotificationActor>();
+         //   var phoneNotificationActor = Context.ActorOf(propsPhoneNotificationActor, $"phoneNotification-{msg.BibId}");
+        //}
+
+        
 
         private void Handle(SendNotification msg)
         {
             var position = 1;
+
             foreach (var result in msg.Results.OrderBy(x => x.Duration))
             {
-                _phoneNotificationActor.Tell(
+                //var phoneNotificationActor = Context.ActorSelection($"/user/notification/phoneNotification-{result.BibId}");
+
+                var propsPhoneNotificationActor = Props.Create<PhoneNotificationActor>();
+                var phoneNotificationActor = Context.ActorOf(propsPhoneNotificationActor, $"phoneNotification-{result.BibId}");
+
+                phoneNotificationActor.Tell(
                     new SendPhoneNotification(result.BibId, result.Duration, position)
                 );
                 position++;
@@ -69,10 +82,10 @@ namespace Actors
             //Self.Tell(new Shutdown());
         }
 
-        private void Handle(Shutdown msg)
-        {
+        //private void Handle(Shutdown msg)
+        //{
 
-            Context.Stop(Self);
-        }
+        //    Context.Stop(Self);
+        //}
     }
 }

@@ -22,9 +22,7 @@ namespace Actors
         private int _entryRegisteredCounter;
         private IActorRef _athleteResultFileDumperActor;
         private string _fileRaceResultPath = "result-completed.txt";
-
-        // DEMO: All steps
-        private IActorRef _notificationActor;
+                
         public StandingActor()
         {
             if (System.IO.File.Exists(_fileRaceResultPath))
@@ -35,14 +33,6 @@ namespace Actors
             var props = Props.Create<AthleteResultFileDumperActor>(_fileRaceResultPath);
             var actorName = "filewriter";
             _athleteResultFileDumperActor = Context.ActorOf(props, actorName);
-
-            // DEMO: All
-            var notificationProps = Props.Create<NotificationActor>();
-
-            // ------
-            _notificationActor = Context.ActorOf(notificationProps, "notification");
-
-            //
         }
 
         /// <summary>
@@ -162,8 +152,8 @@ namespace Actors
             }
             FluentConsole.DarkGreen.Line(sb.ToString());
 
-            // DEMO: ALL STEPS
-            _notificationActor.Tell(new SendNotification(_results));
+            var notificationActor = Context.ActorSelection("/user/notification");
+            notificationActor.Tell(new SendNotification(_results));
         }
 
         private void Handle(PrintLiveStanding msg)
