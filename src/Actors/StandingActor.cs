@@ -61,18 +61,12 @@ namespace Actors
                 case AthleteCheckRegistered ad:
                     Handle(ad);
                     break;
-                // TODO: verify if required
-                //case RaceClosed rc:
-                //    Handle(rc);
-                //    break;
                 case PrintFinalStanding ss:
                     Handle(ss);
                     break;
-                
-
-                //case AthleteRaceResult ss:
-                //    Handle(ss);
-                //    break;
+                case AthleteRaceResult ss:
+                    Handle(ss);
+                    break;
                 case Shutdown sd:
                     Handle(sd);
                     break;
@@ -82,11 +76,6 @@ namespace Actors
         private void Handle(RaceStarted msg)
         {
             _raceStartedAt = msg.Timestamp;
-        }
-
-        private void Handle(RaceClosed msg)
-        {
-            
         }
 
         private void Handle(AthleteEntryRegistered msg)
@@ -151,10 +140,13 @@ namespace Actors
                 sb.AppendLine($"Athlete {result.BibId} completed in {result.Duration.TotalMilliseconds} ms");
             }
             FluentConsole.DarkGreen.Line(sb.ToString());
-
-            var notificationActor = Context.ActorSelection("/user/notification");
-            notificationActor.Tell(new SendNotification(_results));
         }
+
+        private void Handle(AthleteRaceResult msg)
+        {
+            _athleteResultFileDumperActor.Tell(msg);
+        }
+
 
         private void Handle(PrintLiveStanding msg)
         {
