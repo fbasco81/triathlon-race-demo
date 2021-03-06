@@ -53,7 +53,7 @@ namespace Actors
         {
             var position = 1;
 
-            foreach (var result in msg.Results.OrderBy(x => x.Duration))
+            foreach (var result in msg.Results.Take(15))
             {
                 var propsPhoneNotificationActor = Props.Create<PhoneNotificationActor>();
                 var phoneNotificationActor = Context.ActorOf(propsPhoneNotificationActor, $"phoneNotification-{result.BibId}");
