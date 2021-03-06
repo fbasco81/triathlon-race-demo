@@ -54,7 +54,7 @@ namespace Host
                 var standingActorProps = Props.Create<StandingActor>();
                 var standingActor = system.ActorOf(standingActorProps, "standing");
 
-                var notificationProps = Props.Create<NotificationActor>().WithRouter(FromConfig.Instance);
+                var notificationProps = Props.Create<NotificationActor>();
                 var notificationActor = system.ActorOf(notificationProps, "notification");
 
                 var simulationProps = Props.Create<SimulationActor>(gates).WithRouter(new RoundRobinPool(3));

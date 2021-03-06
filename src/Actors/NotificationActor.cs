@@ -34,11 +34,11 @@ namespace Actors
         {
             var position = 1;
 
+            var propsPhoneNotificationActor = Props.Create<PhoneNotificationActor>().WithRouter(FromConfig.Instance);
+            var phoneNotificationActor = Context.ActorOf(propsPhoneNotificationActor, $"phoneNotification");
+
             foreach (var result in msg.Results.Take(30))
             {
-                var propsPhoneNotificationActor = Props.Create<PhoneNotificationActor>();
-                var phoneNotificationActor = Context.ActorOf(propsPhoneNotificationActor, $"phoneNotification-{result.BibId}");
-
                 phoneNotificationActor.Tell(
                     new SendPhoneNotification(result.BibId, result.Duration, position)
                 );

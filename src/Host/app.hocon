@@ -7,9 +7,9 @@
         provider = "Akka.Remote.RemoteActorRefProvider, Akka.Remote"
         deployment
         {
-            /notification {
+            /notification/phoneNotification {
                 router = round-robin-pool
-                nr-of-instances = 4
+                nr-of-instances = 1
             }
 
         }

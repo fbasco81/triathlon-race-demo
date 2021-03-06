@@ -44,6 +44,7 @@ namespace Actors
         [System.Diagnostics.DebuggerHidden]
         private void Handle(SendPhoneNotification msg)
         {
+            System.Threading.Thread.Sleep(500);
             FluentConsole.Yellow.Line($"[{Self.Path.Uid}]: Congratulation athlete {msg.BibId}. You have ranked {msg.Position} with a duration of {msg.Duration}");
         }
     }
