@@ -61,18 +61,12 @@ namespace Actors
                 case AthleteCheckRegistered ad:
                     Handle(ad);
                     break;
-                // TODO: verify if required
-                //case RaceClosed rc:
-                //    Handle(rc);
-                //    break;
                 case PrintFinalStanding ss:
                     Handle(ss);
                     break;
-                
-
-                //case AthleteRaceResult ss:
-                //    Handle(ss);
-                //    break;
+                case AthleteRaceResult ss:
+                    Handle(ss);
+                    break;
                 case Shutdown sd:
                     Handle(sd);
                     break;
@@ -88,6 +82,12 @@ namespace Actors
         {
             
         }
+
+        private void Handle(AthleteRaceResult msg)
+        {
+            _athleteResultFileDumperActor.Tell(msg);
+        }
+
 
         private void Handle(AthleteEntryRegistered msg)
         {
