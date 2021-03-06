@@ -88,9 +88,7 @@ namespace Actors
                 var bibId = (i + 1).ToString();
                 raceControl.Tell(new AthleteRegistered(bibId));
             }
-
-            //var standingActor = Context.System.ActorSelection($"/user/standing");
-            //standingActor.Tell(new RaceStarted(raceStartedAt));
+                        
             raceControl.Tell(new RaceStarted(raceStartedAt));
 
             for (int i = 0; i < msg.NumberOfAthletes; i++)
@@ -104,11 +102,6 @@ namespace Actors
                 new RaceClosed(),
                 Self);
 
-
-            //Context.System.Scheduler.ScheduleTellOnce(_raceDuration,
-            //    standingActor,
-            //    new PrintFinalStanding(10),
-            //    Self);
 
         }
 

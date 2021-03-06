@@ -201,7 +201,6 @@ namespace Actors
 
         private void handleRaceClosed()
         {
-            //TODO: handle Shutdown for each state
             Receive<RaceClosed>(
                 msg =>
                 {
